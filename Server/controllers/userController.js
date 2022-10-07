@@ -60,6 +60,7 @@ const loginUser = (req, res, next) => {
       if (results.length == 1) {
         // Compare user keyed in pw against db
         if ((await bcrypt.compare(pw_input, results[0].password)) == true) {
+          // Perform check group
           await Checkgroup(req.body.username, "admin")
             .then(resolve => {
               if (resolve) {
@@ -328,4 +329,48 @@ const updateProfile = async (req, res) => {
   });
 };
 
-module.exports = { getUser, createUser, loginUser, retrieveProfile, updateProfile };
+// Create group at usermanagement (admin)
+const createGroup = (req, res) => {
+  // Retrieving admin input
+  var groupname_input = req.body.group_name.toLowerCase();
+
+  // Regex to validate user input
+  const groupnamePattern = /^[A-Za-z0-9]+$/;
+
+  // Group name input validation
+  if (!groupname_input.match(groupnamePattern) || groupname_input.length < 4) {
+    return res.status(200).send({
+      success: false,
+      data: "Incorrect group name format, please have at least 3 characters, no special characters and space allowed"
+    });
+  }
+
+  //  Checking if anyone uses admin
+  if (groupname_input.includes("admin")) {
+    return res.status(200).send({
+      success: false,
+      data: "Group name is not allowed"
+    });
+  }
+
+  let sql = `INSERT into usergroup (group_name)  VALUES ('${groupname_input}')`;
+
+  db.query(sql, (err, results) => {
+    // SQL error messages
+    if (err) {
+      res.status(200).send({
+        success: false,
+        data: err.code
+      });
+    }
+    // Successful messages
+    else {
+      res.status(200).send({
+        success: true,
+        data: "New group created"
+      });
+    }
+  });
+};
+
+module.exports = { getUser, createUser, loginUser, retrieveProfile, updateProfile, createGroup };
