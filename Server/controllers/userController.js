@@ -18,27 +18,8 @@ function getJwtToken(username, admin) {
   });
 }
 
-// Get all User = /user
-const getUser = (req, res, next) => {
-  let sql = "SELECT * FROM user";
-
-  db.query(sql, (err, results) => {
-    if (err) {
-      res.send("Unable to retrieved results");
-    } else {
-      res.status(200).send({
-        success: true,
-        results: results.length,
-        requestMethod: req.requestMethod,
-        data: results
-      });
-      console.log(results);
-    }
-  });
-};
-
 // Get login user /login // Regex for injection
-const loginUser = (req, res, next) => {
+const loginUser = (req, res) => {
   // User input password
   var pw_input = req.body.password;
   // User input username
@@ -55,9 +36,11 @@ const loginUser = (req, res, next) => {
   db.query(sql, async (err, results) => {
     if (err) {
       res.send("Unable to retrieved results");
-    } else {
+    }
+    // DB retrieved object
+    else {
       // Contains user object
-      if (results.length == 1) {
+      if (results.length == 1 && results[0].is_active == true) {
         // Compare user keyed in pw against db
         if ((await bcrypt.compare(pw_input, results[0].password)) == true) {
           // Perform check group
@@ -100,8 +83,7 @@ const loginUser = (req, res, next) => {
         // Invalid password input by user
         else {
           res.status(200).send({
-            success: true,
-            results: results.length,
+            success: false,
             requestMethod: req.requestMethod,
             data: "Invalid username or password"
           });
@@ -110,8 +92,7 @@ const loginUser = (req, res, next) => {
       // User does not exists in the database
       else {
         res.status(200).send({
-          success: true,
-          results: results.length,
+          success: false,
           requestMethod: req.requestMethod,
           data: "Invalid username or password"
         });
@@ -171,7 +152,7 @@ const createUser = async (req, res, next) => {
   // Hashing user input password
   hashpw = await bcrypt.hash(password_input, saltRounds);
 
-  let sql = `INSERT into user (username, email, password, is_active)  VALUES ('${username_input}','${email_input}', '${hashpw}', true)`;
+  let sql = `INSERT into user (username, email, password, is_active, group_list)  VALUES ('${username_input}','${email_input}', '${hashpw}', true, "")`;
 
   db.query(sql, (err, results) => {
     // SQL error messages
@@ -316,15 +297,12 @@ const updateProfile = async (req, res) => {
     }
     // Successful messages
     else {
-      // if (results.length > 0) {
-      console.log(sql);
       res.status(200).send({
         success: true,
         data: {
           message: "Profile Updated"
         }
       });
-      // }
     }
   });
 };
@@ -373,4 +351,135 @@ const createGroup = (req, res) => {
   });
 };
 
-module.exports = { getUser, createUser, loginUser, retrieveProfile, updateProfile, createGroup };
+// Retrieve all user
+const getAllUser = (req, res) => {
+  let sql = "SELECT * FROM user";
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      res.status(200).send({
+        success: false,
+        data: err
+      });
+    } else {
+      res.status(200).send({
+        success: true,
+        data: results
+      });
+    }
+  });
+};
+
+// Edit user
+const updateUser = async (req, res) => {
+  // Retrieving username (PK) for update
+  var username = req.body.username;
+  // Retrieving user input
+  var email_input = req.body.email;
+  var password_input = req.body.password;
+  var is_active_input = req.body.is_active;
+  var group_list_input = req.body.group_list;
+
+  // Regex to validate user input
+  const emailPattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
+  const passwordPattern = /^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,10}$/;
+
+  // Hashed password
+  hashpw = await bcrypt.hash(password_input, saltRounds);
+
+  // Empty sql statement
+  let sql = "";
+
+  // Empty field was submitted
+  if (email_input.length < 1 && password_input.length < 1) {
+    return res.status(200).send({
+      success: false,
+      data: {
+        message: "No changes detected"
+      }
+    });
+  }
+
+  // Only email field are edited
+  else if (email_input.length > 0 && password_input.length < 1) {
+    // Perform user input validation
+    if (!email_input.match(emailPattern)) {
+      return res.status(200).send({
+        success: false,
+        data: {
+          email_field: "Incorrect email, please make changes",
+          pw_field: ""
+        }
+      });
+    }
+    // Correct user input, performing email update
+    else {
+      sql = `UPDATE user SET email = '${email_input}', is_active = '${is_active_input}', group_list = '${group_list_input}' WHERE username = '${username}'`;
+    }
+  }
+
+  // Only password field is updated
+  else if (email_input.length < 1 && password_input.length > 0) {
+    // Perform user input validation
+    if (!password_input.match(passwordPattern)) {
+      return res.status(200).send({
+        success: false,
+        data: {
+          email_field: "",
+          pw_field: "Incorrect password format, please have at minimum 8 and maximum 10. Please include at least 1 alphabet, 1 number and 1 special characters"
+        }
+      });
+    }
+    // Correct user input, performing password update
+    else {
+      sql = `UPDATE user SET password = '${hashpw}', is_active = '${is_active_input}', group_list = '${group_list_input}' WHERE username = '${username}'`;
+    }
+  }
+
+  // Both username and password are not empty (update both)
+  else {
+    // Perform user input validation
+    if (!password_input.match(passwordPattern)) {
+      return res.status(200).send({
+        success: false,
+        data: {
+          email_field: "",
+          pw_field: "Incorrect password format, please have at minimum 8 and maximum 10. Please include at least 1 alphabet, 1 number and 1 special characters"
+        }
+      });
+    } else if (!email_input.match(emailPattern)) {
+      return res.status(200).send({
+        success: false,
+        data: {
+          email_field: "Incorrect email, please make changes",
+          pw_field: ""
+        }
+      });
+    }
+    // Correct user input, performing password update
+    else {
+      sql = `UPDATE user SET email = '${email_input}', password = '${hashpw}', is_active = '${is_active_input}', group_list = '${group_list_input}' WHERE username = '${username}'`;
+    }
+  }
+
+  db.query(sql, (err, results) => {
+    // SQL error messages
+    if (err) {
+      res.status(200).send({
+        success: false,
+        data: err.code
+      });
+    }
+    // Successful messages
+    else {
+      res.status(200).send({
+        success: true,
+        data: {
+          message: "User profile Updated"
+        }
+      });
+    }
+  });
+};
+
+module.exports = { loginUser, retrieveProfile, updateProfile, createUser, createGroup, getAllUser, updateUser };
