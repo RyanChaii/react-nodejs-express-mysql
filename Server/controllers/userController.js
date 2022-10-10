@@ -7,13 +7,14 @@ const { sendToken } = require("../utility/jwtToken");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const e = require("express");
+const { request } = require("express");
 
 // bcrypt salt parameter
 const saltRounds = 10;
 
 /* Functions */
-function getJwtToken(username, admin) {
-  return jwt.sign({ username: username, is_admin: admin }, process.env.JWT_SECRET, {
+function getJwtToken(username) {
+  return jwt.sign({ username: username }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_TIME
   });
 }
@@ -24,11 +25,14 @@ const loginUser = (req, res) => {
   var pw_input = req.body.password;
   // User input username
   var un_input = req.body.username;
-
+  // No special characters
   const onlyLettersPattern = /^[A-Za-z0-9 ]+$/;
-
+  // Prevent SQL injection
   if (!un_input.match(onlyLettersPattern)) {
-    return res.status(400).send({ message: "No special characters and no numbers, please!", success: false });
+    return res.status(200).send({
+      message: "No special characters and no numbers, please!",
+      success: false
+    });
   }
 
   let sql = `SELECT * FROM user WHERE username = '${un_input}'`;
@@ -60,7 +64,7 @@ const loginUser = (req, res) => {
                 });
               } else {
                 //Set JWT
-                var token = getJwtToken(un_input, false);
+                var token = getJwtToken(un_input);
                 // User login & not admin
                 res.status(200).send({
                   success: true,
@@ -82,19 +86,21 @@ const loginUser = (req, res) => {
         }
         // Invalid password input by user
         else {
+          console.log("fail log in");
           res.status(200).send({
             success: false,
             requestMethod: req.requestMethod,
-            data: "Invalid username or password"
+            message: "Invalid username or password"
           });
         }
       }
       // User does not exists in the database
       else {
+        console.log("no such user");
         res.status(200).send({
           success: false,
           requestMethod: req.requestMethod,
-          data: "Invalid username or password"
+          message: "Invalid username or password"
         });
       }
     }
