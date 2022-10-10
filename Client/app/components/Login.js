@@ -11,9 +11,15 @@ function Login() {
     e.preventDefault();
     try {
       const response = await Axios.post("http://localhost:3000/login", { username, password });
-      console.log(response);
-      console.log(response.data.data);
-      console.log("posted");
+      //   console.log(response);
+      //   console.log(response.data.data.token);
+      //   let un = response.data.data.username;
+      let token = response.data.data.token;
+      console.log(token);
+      //   console.log("posted");
+      const response1 = await Axios.get("http://localhost:3000/authuser", { params: { token: token } });
+
+      console.log(response1);
     } catch (e) {
       console.log("Error logining user");
     }

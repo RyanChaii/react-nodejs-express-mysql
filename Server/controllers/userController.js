@@ -488,4 +488,31 @@ const updateUser = async (req, res) => {
   });
 };
 
-module.exports = { loginUser, retrieveProfile, updateProfile, createUser, createGroup, getAllUser, updateUser };
+// Authenticate user
+const authUser = (req, res) => {
+  // Get token value to the json body
+  const token = req.query.token;
+  // console.log(req);
+  // console.log(req.query.token);
+  // console.log(token);
+
+  // If the token is present
+  if (token) {
+    // Verify the token using jwt.verify method
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
+
+    //  Return response with decode data
+    res.json({
+      login: true,
+      data: decode
+    });
+  } else {
+    // Return response with error
+    res.json({
+      login: false,
+      data: "error"
+    });
+  }
+};
+
+module.exports = { loginUser, retrieveProfile, updateProfile, createUser, createGroup, getAllUser, updateUser, authUser };

@@ -13,6 +13,8 @@ router.route("/profile/updateprofile").post(user.updateProfile);
 /*User route */
 // Login
 router.route("/login").post(user.loginUser);
+// Auth User
+router.route("/authuser").get(user.authUser);
 // Create user
 router.route("/usermanagement/createuser").post(user.createUser);
 // Create group at user management
