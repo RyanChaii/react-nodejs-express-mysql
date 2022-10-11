@@ -9,6 +9,8 @@ exports.Checkgroup = (username, groupname) => {
       if (err) {
         reject(false);
       } else {
+        console.log("123");
+        console.log(results);
         // Check if its empty string
         if (results[0].group_list != "") {
           // Split the string

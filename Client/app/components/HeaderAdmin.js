@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 
-function Header() {
+function HeaderAdmin() {
   return (
     <header className="header-bar bg-primary mb-3">
       <div className="container d-flex flex-column flex-md-row align-items-center p-3">
@@ -17,6 +17,10 @@ function Header() {
             </div>
 
             <div className="col-md-auto">
+              <button className="btn btn-info ">Manage User</button>
+            </div>
+
+            <div className="col-md-auto">
               <button className="btn btn-danger ">Logout</button>
             </div>
           </div>
@@ -26,4 +30,4 @@ function Header() {
   );
 }
 
-export default Header;
+export default HeaderAdmin;

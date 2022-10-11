@@ -6,24 +6,30 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Login from "./components/Login";
 import Footer from "./components/Footer";
+import Dashboard from "./components/dashboard";
 
 function Main() {
   return (
-    <>
-      <Login />
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-// <BrowserRouter>
-//   <Routes>
-//     <Route path="/login" element={<Login />} />
-//      <Footer />
-//      <Header />
-//   </Routes>
-// </BrowserRouter>
+
 const root = ReactDOM.createRoot(document.querySelector("#app"));
 root.render(<Main />);
 
 if (module.hot) {
   module.hot.accept();
 }
+
+// function Main() {
+//   return (
+//     <>
+//       <Login />
+//     </>
+//   );
+// }

@@ -12,7 +12,7 @@ const { request } = require("express");
 // bcrypt salt parameter
 const saltRounds = 10;
 
-/* Functions */
+/* signing JWT token */
 function getJwtToken(username) {
   return jwt.sign({ username: username }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_TIME
@@ -52,7 +52,7 @@ const loginUser = (req, res) => {
             .then(resolve => {
               if (resolve) {
                 //Set JWT
-                var token = getJwtToken(un_input, true);
+                var token = getJwtToken(un_input);
                 // User login & admin
                 res.status(200).send({
                   success: true,
@@ -489,27 +489,53 @@ const updateUser = async (req, res) => {
 };
 
 // Authenticate user
-const authUser = (req, res) => {
+const authUser = async (req, res) => {
   // Get token value to the json body
   const token = req.query.token;
-  // console.log(req);
-  // console.log(req.query.token);
-  // console.log(token);
+  // Retrieve username for checkgroup
+  const username = req.query.username;
+  // Retrieve group_list for checkgroup
+  const group_list = req.query.group_list;
+
+  const checkgroup_tf = await Checkgroup(username, group_list)
+    .then(resolve => {
+      if (resolve) {
+        return true;
+      } else {
+        return false;
+      }
+    })
+    .catch(reject => {
+      return false;
+    });
+  // console.log("hi");
+  // console.log(checkgroup_tf);
 
   // If the token is present
-  if (token) {
+  if (token && checkgroup_tf) {
     // Verify the token using jwt.verify method
     const decode = jwt.verify(token, process.env.JWT_SECRET);
 
     //  Return response with decode data
     res.json({
       login: true,
+      isAdmin: true,
+      data: decode
+    });
+  } else if (token && !checkgroup_tf) {
+    // Verify the token using jwt.verify method
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
+    //  Return response with decode data
+    res.json({
+      login: true,
+      isAdmin: false,
       data: decode
     });
   } else {
     // Return response with error
     res.json({
       login: false,
+      isAdmin: false,
       data: "error"
     });
   }
