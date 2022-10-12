@@ -9,14 +9,13 @@ function Dashboard() {
   // Navigation
   const navigate = useNavigate();
   // Set authentication
-  const [isAuthenticated, setIsAuthenticated] = useState();
+  // const [isAuthenticated, setIsAuthenticated] = useState();
   // Check if admin state
   const [isAdmin, setIsAdmin] = useState();
 
   // Authenticate user
   async function authuser(token, username, group_list) {
-    // console.log("user is not authenticated");
-    // setIsAuthenticated(islogin);
+    // Api call to authenticate and check group user
     try {
       const response = await Axios.get("http://localhost:3000/authuser", { params: { token: token, username: username, group_list: group_list } });
       // Get if user are valid

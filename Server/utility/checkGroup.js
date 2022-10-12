@@ -9,24 +9,26 @@ exports.Checkgroup = (username, groupname) => {
       if (err) {
         reject(false);
       } else {
-        console.log("123");
-        console.log(results);
-        // Check if its empty string
-        if (results[0].group_list != "") {
-          // Split the string
-          const group_array = results[0].group_list.split(",");
-          // Belong to the group
-          if (group_array.includes(groupname)) {
-            resolve(true);
+        try {
+          // Check if its empty string
+          if (results[0].group_list != "") {
+            // Split the string
+            const group_array = results[0].group_list.split(",");
+            // Belong to the group
+            if (group_array.includes(groupname)) {
+              resolve(true);
+            }
+            // Does not belong to the group
+            else {
+              resolve(false);
+            }
           }
-          // Does not belong to the group
+          // User does not belonged to any group or not assigned to any
           else {
             resolve(false);
           }
-        }
-        // User does not belonged to any group or not assigned to any
-        else {
-          resolve(false);
+        } catch (e) {
+          reject(false);
         }
       }
     });

@@ -7,6 +7,7 @@ import Header from "./components/Header";
 import Login from "./components/Login";
 import Footer from "./components/Footer";
 import Dashboard from "./components/dashboard";
+import UserProfile from "./components/UserProfile";
 
 function Main() {
   return (
@@ -14,6 +15,7 @@ function Main() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/userprofile" element={<UserProfile />} />
       </Routes>
     </BrowserRouter>
   );
