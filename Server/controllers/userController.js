@@ -180,7 +180,7 @@ const createUser = async (req, res, next) => {
 
 // Retrieve user profile details
 const retrieveProfile = (req, res) => {
-  let sql = `SELECT * FROM user WHERE username = '${req.body.username}'`;
+  let sql = `SELECT * FROM user WHERE username = '${req.query.username}'`;
 
   db.query(sql, (err, results) => {
     // SQL error messages
@@ -210,6 +210,8 @@ const updateProfile = async (req, res) => {
   // Retrieving user input
   var email_input = req.body.email;
   var password_input = req.body.password;
+
+  console.log(email_input);
 
   // Regex to validate user input
   const emailPattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
@@ -267,7 +269,7 @@ const updateProfile = async (req, res) => {
     }
   }
 
-  // Both username and password are not empty (update both)
+  // Both email and password are not empty (update both)
   else {
     // Perform user input validation
     if (!password_input.match(passwordPattern)) {
@@ -496,7 +498,7 @@ const authUser = async (req, res) => {
   const username = req.query.username;
   // Retrieve group_list for checkgroup
   const group_list = req.query.group_list;
-
+  // Return true false
   const checkgroup_tf = await Checkgroup(username, group_list)
     .then(resolve => {
       if (resolve) {
@@ -508,35 +510,28 @@ const authUser = async (req, res) => {
     .catch(reject => {
       return false;
     });
-  // console.log("hi");
-  // console.log(checkgroup_tf);
-
+  console.log(checkgroup_tf);
   // If the token is present
-  if (token && checkgroup_tf) {
-    // Verify the token using jwt.verify method
-    const decode = jwt.verify(token, process.env.JWT_SECRET);
-
-    //  Return response with decode data
-    res.json({
-      login: true,
-      isAdmin: true,
-      data: decode
-    });
-  } else if (token && !checkgroup_tf) {
-    // Verify the token using jwt.verify method
-    const decode = jwt.verify(token, process.env.JWT_SECRET);
-    //  Return response with decode data
-    res.json({
-      login: true,
-      isAdmin: false,
-      data: decode
-    });
+  if (token) {
+    try {
+      const decode = jwt.verify(token, process.env.JWT_SECRET);
+      console.log(decode);
+      res.status(200).send({
+        login: true,
+        isAdmin: checkgroup_tf,
+        data: decode
+      });
+    } catch (e) {
+      console.log(e);
+      res.status(200).send({
+        login: false,
+        isAdmin: checkgroup_tf
+      });
+    }
   } else {
-    // Return response with error
-    res.json({
+    res.status(200).send({
       login: false,
-      isAdmin: false,
-      data: "error"
+      isAdmin: checkgroup_tf
     });
   }
 };

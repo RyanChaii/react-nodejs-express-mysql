@@ -18,15 +18,18 @@ function Dashboard() {
     // Api call to authenticate and check group user
     try {
       const response = await Axios.get("http://localhost:3000/authuser", { params: { token: token, username: username, group_list: group_list } });
+
       // Get if user are valid
       const islogin = response.data.login;
       // Get if user is admin
       const isadmin = response.data.isAdmin;
+      // Get decoded jwt code username
+      const decoded_un = response.data.data.username;
       // Set admin state
       setIsAdmin(isadmin);
 
-      if (!islogin) {
-        console.log(islogin);
+      if (!islogin || username != decoded_un) {
+        sessionStorage.clear();
         navigate("/");
       }
     } catch (e) {
