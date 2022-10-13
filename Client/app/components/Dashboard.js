@@ -39,6 +39,8 @@ function Dashboard() {
   }
 
   useEffect(() => {
+    // Set tab title
+    document.title = "Dashboard";
     // Retrieve user token
     const userlogintoken = sessionStorage.getItem("token");
     // Retrieve username

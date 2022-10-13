@@ -18,6 +18,10 @@ function UserProfile() {
   const [emailLabel, setEmailLabel] = useState("");
   const [password, setPassword] = useState("");
   // Validation state
+  const [emailValidation, setEmailValidation] = useState("");
+  const [passwordValidation, setPasswordValidation] = useState("");
+  // Message state
+  const [message, setMessage] = useState("");
 
   // Authenticate user
   async function authuser(token, username, group_list) {
@@ -61,14 +65,27 @@ function UserProfile() {
     console.log(password);
     console.log(email);
     try {
-      const response = await Axios.post("http://localhost:3000/profile/updateprofile", { email, password });
-      console.log(response);
+      const response = await Axios.post("http://localhost:3000/profile/updateprofile", { username, email, password });
+      console.log(response.data.data);
+      // Setting validation
+      setEmailValidation(response.data.data.email_field);
+      setPasswordValidation(response.data.data.pw_field);
+      setMessage(response.data.data.message);
+
+      if (response.data.data.message == "Profile Updated") {
+        setEmailLabel(email);
+        setEmail("");
+        setPassword("");
+        document.getElementById("email").value = "";
+      }
     } catch (e) {
       console.log(e);
     }
   }
 
   useEffect(() => {
+    // Set tab title
+    document.title = "User Profile";
     // Retrieve user token
     const userlogintoken = sessionStorage.getItem("token");
     // Retrieve username
@@ -107,6 +124,11 @@ function UserProfile() {
               <h5>
                 <b style={{ color: "darkgreen" }}>Edit Your Profile</b>
               </h5>
+              <label htmlFor="message" className="text-muted mb-1">
+                <h6 style={{ color: "green" }}>
+                  <b>{message}</b>
+                </h6>
+              </label>
             </label>
             {/* Form for email */}
             <div className="form-group">
@@ -114,6 +136,9 @@ function UserProfile() {
                 <h6>Email</h6>
               </label>
               <input onChange={e => setEmail(e.target.value)} id="email" name="email" className="form-control" type="text" placeholder={emailLabel} autoComplete="off" />
+              <label htmlFor="emailValidation" className="text-muted mb-1">
+                <h6 style={{ color: "red" }}>{emailValidation}</h6>
+              </label>
             </div>
             {/* Form for password */}
             <div className="form-group">
@@ -121,6 +146,9 @@ function UserProfile() {
                 <h6>Password</h6>
               </label>
               <input onChange={e => setPassword(e.target.value)} id="password" name="password" className="form-control" type="password" placeholder="Edit your password here" />
+              <label htmlFor="passwordValidation" className="text-muted mb-1">
+                <h6 style={{ color: "red" }}>{passwordValidation}</h6>
+              </label>
             </div>
             <button type="submit" className="py-3 mt-4 btn btn-lg btn-success btn-block">
               Update Profile

@@ -137,7 +137,7 @@ const createUser = async (req, res, next) => {
       success: false,
       data: {
         un_field: "",
-        pw_field: "Incorrect password format, please have at minimum 8 and maximum 10. Please include at least 1 alphabet, 1 number and 1 special characters",
+        pw_field: "Incorrect password format, please have at minimum 8 and maximum 10 characters. Please include at least 1 alphabet, 1 number and 1 special characters",
         email_field: ""
       }
     });
@@ -192,7 +192,7 @@ const retrieveProfile = (req, res) => {
     }
     // Successful messages
     else {
-      console.log(results);
+      // console.log(results);
       if (results.length > 0) {
         res.status(200).send({
           success: true,
@@ -210,8 +210,6 @@ const updateProfile = async (req, res) => {
   // Retrieving user input
   var email_input = req.body.email;
   var password_input = req.body.password;
-
-  console.log(email_input);
 
   // Regex to validate user input
   const emailPattern = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
@@ -259,7 +257,7 @@ const updateProfile = async (req, res) => {
         success: false,
         data: {
           email_field: "",
-          pw_field: "Incorrect password format, please have at minimum 8 and maximum 10. Please include at least 1 alphabet, 1 number and 1 special characters"
+          pw_field: "Incorrect password format, please have at minimum 8 and maximum 10 characters. Please include at least 1 alphabet, 1 number and 1 special characters"
         }
       });
     }
@@ -277,7 +275,7 @@ const updateProfile = async (req, res) => {
         success: false,
         data: {
           email_field: "",
-          pw_field: "Incorrect password format, please have at minimum 8 and maximum 10. Please include at least 1 alphabet, 1 number and 1 special characters"
+          pw_field: "Incorrect password format, please have at minimum 8 and maximum 10 characters. Please include at least 1 alphabet, 1 number and 1 special characters"
         }
       });
     } else if (!email_input.match(emailPattern)) {
@@ -396,7 +394,7 @@ const updateUser = async (req, res) => {
   hashpw = await bcrypt.hash(password_input, saltRounds);
 
   // Empty sql statement
-  let sql = "";
+  var sql = "";
 
   // Empty field was submitted
   if (email_input.length < 1 && password_input.length < 1) {
@@ -480,6 +478,7 @@ const updateUser = async (req, res) => {
     }
     // Successful messages
     else {
+      // console.log(sql);
       res.status(200).send({
         success: true,
         data: {
@@ -510,12 +509,10 @@ const authUser = async (req, res) => {
     .catch(reject => {
       return false;
     });
-  console.log(checkgroup_tf);
   // If the token is present
   if (token) {
     try {
       const decode = jwt.verify(token, process.env.JWT_SECRET);
-      console.log(decode);
       res.status(200).send({
         login: true,
         isAdmin: checkgroup_tf,

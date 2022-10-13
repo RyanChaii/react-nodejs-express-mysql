@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Axios from "axios";
 
@@ -38,6 +38,9 @@ function Login() {
       console.log("Error logining user");
     }
   }
+  useEffect(() => {
+    document.title = "Login";
+  }, []);
 
   return (
     <div className="container py-md-5">
