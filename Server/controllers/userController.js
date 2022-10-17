@@ -126,19 +126,8 @@ const createUser = async (req, res, next) => {
       data: {
         un_field: "Incorrect username format, please have at least 6 characters, no special characters and space allowed",
         pw_field: "",
-        email_field: ""
-      }
-    });
-  }
-
-  // Password input validation
-  if (!password_input.match(passwordPattern)) {
-    return res.status(200).send({
-      success: false,
-      data: {
-        un_field: "",
-        pw_field: "Incorrect password format, please have at minimum 8 and maximum 10 characters. Please include at least 1 alphabet, 1 number and 1 special characters",
-        email_field: ""
+        email_field: "",
+        message: ""
       }
     });
   }
@@ -150,29 +139,76 @@ const createUser = async (req, res, next) => {
       data: {
         un_field: "",
         pw_field: "",
-        email_field: "Incorrect email format, please enter a valid email"
+        email_field: "Incorrect email format, please enter a valid email",
+        message: ""
       }
     });
   }
 
+  // Password input validation
+  if (!password_input.match(passwordPattern)) {
+    return res.status(200).send({
+      success: false,
+      data: {
+        un_field: "",
+        pw_field: "Incorrect password format, please have at minimum 8 and maximum 10 characters. Please include at least 1 alphabet, 1 number and 1 special characters",
+        email_field: "",
+        message: ""
+      }
+    });
+  }
   // Hashing user input password
   hashpw = await bcrypt.hash(password_input, saltRounds);
 
   let sql = `INSERT into user (username, email, password, is_active, group_list)  VALUES ('${username_input}','${email_input}', '${hashpw}', true, "")`;
 
   db.query(sql, (err, results) => {
-    // SQL error messages
-    if (err) {
+    try {
+      // SQL error messages
+      if (err) {
+        console.log("Error");
+        res.status(200).send({
+          success: false,
+          data: {
+            un_field: "",
+            pw_field: "",
+            email_field: "",
+            message: "Error adding user, no duplicate allow"
+          }
+        });
+      }
+      // Successful messages
+      else {
+        res.status(200).send({
+          success: true,
+          data: {
+            un_field: "",
+            pw_field: "",
+            email_field: "",
+            message: "User created successfully"
+          }
+        });
+      }
+    } catch (e) {
+      if (e.code == "ER_DUP_ENTRY") {
+        res.status(200).send({
+          success: false,
+          data: {
+            un_field: "",
+            pw_field: "",
+            email_field: "",
+            message: "No duplicate user allowed"
+          }
+        });
+      }
       res.status(200).send({
         success: false,
-        data: err.code
-      });
-    }
-    // Successful messages
-    else {
-      res.status(200).send({
-        success: true,
-        data: "User created"
+        data: {
+          un_field: "",
+          pw_field: "",
+          email_field: "",
+          message: "Error adding user"
+        }
       });
     }
   });
@@ -325,7 +361,7 @@ const createGroup = (req, res) => {
   if (!groupname_input.match(groupnamePattern) || groupname_input.length < 4) {
     return res.status(200).send({
       success: false,
-      data: "Incorrect group name format, please have at least 3 characters, no special characters and space allowed"
+      message: "Incorrect group name format, please have at least 3 characters, no special characters and space allowed"
     });
   }
 
@@ -333,7 +369,7 @@ const createGroup = (req, res) => {
   if (groupname_input.includes("admin")) {
     return res.status(200).send({
       success: false,
-      data: "Group name is not allowed"
+      message: "Group name is not allowed"
     });
   }
 
@@ -341,17 +377,22 @@ const createGroup = (req, res) => {
 
   db.query(sql, (err, results) => {
     // SQL error messages
-    if (err) {
+    if (err.code === "ER_DUP_ENTRY") {
       res.status(200).send({
         success: false,
-        data: err.code
+        message: "No duplicate entry allowed"
+      });
+    } else if (err) {
+      res.status(200).send({
+        success: false,
+        message: err.code
       });
     }
     // Successful messages
     else {
       res.status(200).send({
         success: true,
-        data: "New group created"
+        message: "New group created"
       });
     }
   });

@@ -13,6 +13,11 @@ function HeaderAdmin() {
   function userProfile() {
     navigate("/userprofile");
   }
+
+  // View and edit user profile
+  function userManagement() {
+    navigate("/usermanagement");
+  }
   return (
     <header className="header-bar bg-primary mb-3">
       <div className="container d-flex flex-column flex-md-row align-items-center p-3">
@@ -31,7 +36,9 @@ function HeaderAdmin() {
             </div>
 
             <div className="col-md-auto">
-              <button className="btn btn-success ">Manage User</button>
+              <button onClick={userManagement} className="btn btn-success ">
+                Manage User
+              </button>
             </div>
 
             <div className="col-md-auto">

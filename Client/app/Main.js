@@ -8,6 +8,7 @@ import Login from "./components/Login";
 import Footer from "./components/Footer";
 import Dashboard from "./components/dashboard";
 import UserProfile from "./components/UserProfile";
+import UserManagement from "./components/UserManagement";
 
 function Main() {
   return (
@@ -16,6 +17,7 @@ function Main() {
         <Route path="/" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/userprofile" element={<UserProfile />} />
+        <Route path="/usermanagement" element={<UserManagement />} />
       </Routes>
     </BrowserRouter>
   );

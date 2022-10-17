@@ -1,9 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-// My component import
-import UserProfile from "./UserProfile";
-
 function Header() {
   // Navigation
   const navigate = useNavigate();

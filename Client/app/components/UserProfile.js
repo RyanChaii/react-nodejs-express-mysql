@@ -79,6 +79,7 @@ function UserProfile() {
         document.getElementById("email").value = "";
       }
     } catch (e) {
+      setMessage(e);
       console.log(e);
     }
   }
