@@ -50,9 +50,10 @@ function UserManagement() {
   // Create Group
   async function handleCreateGroupSubmit(e) {
     e.preventDefault();
+    console.log(createGroupName);
     try {
       const response = await Axios.post("http://localhost:3000/usermanagement/creategroup", { group_name: createGroupName });
-      console.log(response);
+
       if (!response.data.success) {
         setCreateGroupNameValidation(response.data.message);
         setCreateGroupNameSuccess("");
@@ -65,9 +66,31 @@ function UserManagement() {
     }
   }
 
+  // Show create group
+  function showCreateGroup() {
+    var creategroupdoc = document.getElementById("create-group-form");
+    if (creategroupdoc.style.display == "none") {
+      creategroupdoc.style.display = "block";
+      // creategroupdoc.style.outline = "1px solid gray";
+    } else {
+      creategroupdoc.style.display = "none";
+    }
+  }
+
+  // Show create user
+  function showCreateUser() {
+    var createuserdoc = document.getElementById("create-user-form");
+    if (createuserdoc.style.display == "none") {
+      createuserdoc.style.display = "block";
+    } else {
+      createuserdoc.style.display = "none";
+    }
+  }
+
   // Create User
   async function handleCreateUserSubmit(e) {
     e.preventDefault();
+
     try {
       const response = await Axios.post("http://localhost:3000/usermanagement/createuser", { username: createUserusername, email: createUserEmail, password: createUserPassword });
       // Failed to create user
@@ -115,29 +138,34 @@ function UserManagement() {
   }, []);
   return (
     <div>
+      {/* Header */}
       <HeaderAdmin />
+
+      {/* Body */}
       <div className="container py-md-5">
         <div className="row">
-          {/* Create User Form */}
+          {/* View & edit user table */}
           <div className="col-lg-7">
             <h1>Table is here</h1>
           </div>
-          {/* Create Group Form */}
+
+          {/* Create Group & User form */}
           <div className="col-lg-5 pl-lg-5 pb-3 py-lg-5">
-            <div class="w3-container w3-teal">
-              <h3>Header</h3>
+            {/* Create Group Header */}
+            <div className="w3-container w3-teal">
+              <h3 onClick={showCreateGroup} style={{ cursor: "pointer" }}>
+                Create Group
+                <i className="fa fa-caret-down" style={{ fontSize: "30px", position: "absolute", right: "30px" }}></i>
+              </h3>
             </div>
-            <form onSubmit={handleCreateGroupSubmit}>
+            {/* Create Group Form */}
+            <form onSubmit={handleCreateGroupSubmit} id="create-group-form" style={{ display: "none" }}>
               <div className="form-group">
-                {/* Create group label */}
-                <label htmlFor="create-group" className="text-muted mb-1" style={{ paddingTop: "20px" }}>
-                  <h5>Create group</h5>
-                  {/* Success message */}
-                  <label htmlFor="success-message" className="text-muted mb-1">
-                    <h6 style={{ color: "green" }}>
-                      <b>{createGroupNameSuccess}</b>
-                    </h6>
-                  </label>
+                {/* Success message */}
+                <label htmlFor="success-message" className="text-muted mb-1" style={{ paddingTop: "20px" }}>
+                  <h6 style={{ color: "green" }}>
+                    <b>{createGroupNameSuccess}</b>
+                  </h6>
                 </label>
                 {/* Input & validation message display */}
                 <input onChange={e => setCreateGroupName(e.target.value)} id="create-group" name="username" className="form-control" type="text" placeholder="Enter a group name" autoComplete="off" required />
@@ -147,20 +175,24 @@ function UserManagement() {
               </div>
               {/* Create group button*/}
               <button type="submit" className="py-3 mt-4 btn btn-lg btn-success btn-block">
-                Create Group
+                Create
               </button>
             </form>
 
-            <form onSubmit={handleCreateUserSubmit}>
+            {/* Create User Header */}
+            <div className="w3-container w3-red" style={{ marginTop: "20px" }}>
+              <h3 onClick={showCreateUser} style={{ cursor: "pointer" }}>
+                Create User
+                <i className="fa fa-caret-down" style={{ fontSize: "30px", position: "absolute", right: "30px" }}></i>
+              </h3>
+            </div>
+            <form onSubmit={handleCreateUserSubmit} id="create-user-form" style={{ display: "none" }}>
               <div className="form-group">
                 {/* Create group label */}
-                <label htmlFor="createuser" className="text-muted mb-1" style={{ paddingBottom: "5px" }}>
-                  <h5>Create User</h5>
-                  <label htmlFor="createuser-message" className="text-muted mb-1">
-                    <h6 id="createuserid" style={{ color: "green" }}>
-                      <b>{createUserMessage}</b>
-                    </h6>
-                  </label>
+                <label htmlFor="createuser-message" className="text-muted mb-1">
+                  <h6 id="createuserid" style={{ color: "green" }}>
+                    <b>{createUserMessage}</b>
+                  </h6>
                 </label>
               </div>
               {/* Username */}
@@ -194,7 +226,7 @@ function UserManagement() {
                 </label>
               </div>
               <button type="submit" className="py-3 mt-4 btn btn-lg btn-success btn-block">
-                Create User
+                Create
               </button>
             </form>
           </div>

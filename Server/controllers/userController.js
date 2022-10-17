@@ -167,7 +167,7 @@ const createUser = async (req, res, next) => {
       // SQL error messages
       if (err) {
         console.log("Error");
-        res.status(200).send({
+        return res.status(200).send({
           success: false,
           data: {
             un_field: "",
@@ -179,7 +179,7 @@ const createUser = async (req, res, next) => {
       }
       // Successful messages
       else {
-        res.status(200).send({
+        return res.status(200).send({
           success: true,
           data: {
             un_field: "",
@@ -191,7 +191,7 @@ const createUser = async (req, res, next) => {
       }
     } catch (e) {
       if (e.code == "ER_DUP_ENTRY") {
-        res.status(200).send({
+        return res.status(200).send({
           success: false,
           data: {
             un_field: "",
@@ -201,7 +201,7 @@ const createUser = async (req, res, next) => {
           }
         });
       }
-      res.status(200).send({
+      return res.status(200).send({
         success: false,
         data: {
           un_field: "",
@@ -332,14 +332,14 @@ const updateProfile = async (req, res) => {
   db.query(sql, (err, results) => {
     // SQL error messages
     if (err) {
-      res.status(200).send({
+      return res.status(200).send({
         success: false,
         data: err.code
       });
     }
     // Successful messages
     else {
-      res.status(200).send({
+      return res.status(200).send({
         success: true,
         data: {
           message: "Profile Updated"
@@ -376,23 +376,35 @@ const createGroup = (req, res) => {
   let sql = `INSERT into usergroup (group_name)  VALUES ('${groupname_input}')`;
 
   db.query(sql, (err, results) => {
-    // SQL error messages
-    if (err.code === "ER_DUP_ENTRY") {
-      res.status(200).send({
+    try {
+      // SQL error messages
+      if (err) {
+        // Check for duplicate entry
+        if (err.code == "ER_DUP_ENTRY") {
+          return res.status(200).send({
+            success: false,
+            message: "No duplicate entry allowed"
+          });
+        }
+        // Send normal error message
+        return res.status(200).send({
+          success: false,
+          message: "Error creating group, try again later"
+        });
+      }
+      // Successful
+      else {
+        // Successful messages
+        return res.status(200).send({
+          success: true,
+          message: "New group created"
+        });
+      }
+    } catch (e) {
+      console.log(e);
+      return res.status(200).send({
         success: false,
-        message: "No duplicate entry allowed"
-      });
-    } else if (err) {
-      res.status(200).send({
-        success: false,
-        message: err.code
-      });
-    }
-    // Successful messages
-    else {
-      res.status(200).send({
-        success: true,
-        message: "New group created"
+        message: "Error creating group, try again later"
       });
     }
   });
