@@ -23,5 +23,7 @@ router.route("/usermanagement/creategroup").post(user.createGroup);
 router.route("/usermanagement/getalluser").get(user.getAllUser);
 // Update user
 router.route("/usermanagement/updateuser").post(user.updateUser);
+// Retrieve all group from database
+router.route("/usermanagement/getallgroup").get(user.getAllGroup);
 
 module.exports = router;

@@ -418,12 +418,12 @@ const getAllUser = (req, res) => {
     if (err) {
       res.status(200).send({
         success: false,
-        data: err
+        message: err
       });
     } else {
       res.status(200).send({
         success: true,
-        data: results
+        message: results
       });
     }
   });
@@ -586,4 +586,23 @@ const authUser = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, retrieveProfile, updateProfile, createUser, createGroup, getAllUser, updateUser, authUser };
+// Retrieve all group
+const getAllGroup = (req, res) => {
+  let sql = "SELECT * FROM usergroup";
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      res.status(200).send({
+        success: false,
+        message: err
+      });
+    } else {
+      res.status(200).send({
+        success: true,
+        message: results
+      });
+    }
+  });
+};
+
+module.exports = { loginUser, retrieveProfile, updateProfile, createUser, createGroup, getAllUser, updateUser, authUser, getAllGroup };

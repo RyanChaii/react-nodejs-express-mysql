@@ -5,10 +5,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 // My Components
 import Header from "./components/Header";
 import Login from "./components/Login";
-import Footer from "./components/Footer";
 import Dashboard from "./components/dashboard";
 import UserProfile from "./components/UserProfile";
 import UserManagement from "./components/UserManagement";
+import UserTable from "./components/UserTable";
 
 function Main() {
   return (

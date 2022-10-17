@@ -12,3 +12,10 @@ qqwwee1!
 
 React
 https://github.com/LearnWebCode/react-course/blob/master/01-webpack-starter.txt
+
+Material react table
+Documentation
+https://www.material-react-table.com/docs/guides/memoize-components
+https://www.material-react-table.com/docs/examples/editing-crud
+
+https://mdbootstrap.com/docs/b4/jquery/plugins/table-editor/

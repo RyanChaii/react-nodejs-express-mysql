@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Axios from "axios";
 
+// crafted component
 import HeaderAdmin from "./HeaderAdmin";
+import UserTable from "./UserTable";
 
 function UserManagement() {
   // Navigation
@@ -22,6 +24,10 @@ function UserManagement() {
   const [createUserUsernameValidation, setCreateUserUsernameValidation] = useState();
   const [createUserEmailValidation, setCreateUserEmailValidation] = useState();
   const [createUserPasswordValidation, setCreateUserPasswordValidation] = useState();
+
+  // User table data state
+  const [userData, setUserData] = useState("");
+  const [groupData, setGroupData] = useState("");
 
   // Authenticate user
   async function authuser(token, username, group_list) {
@@ -124,6 +130,27 @@ function UserManagement() {
       //   setCreateUserMessage(response.data.message);
     }
   }
+
+  // Get user data to display at table
+  async function getAllUserData() {
+    try {
+      const response = await Axios.get("http://localhost:3000/usermanagement/getalluser");
+      setUserData(response.data.message);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  // Get group data to display at table
+  async function getAllGroupData() {
+    try {
+      const response = await Axios.get("http://localhost:3000/usermanagement/getallgroup");
+      setGroupData(response.data.message);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   useEffect(() => {
     // Set tab title
     document.title = "User Management";
@@ -135,56 +162,32 @@ function UserManagement() {
     const group_list = "admin";
     // Async method call for verify user
     authuser(userlogintoken, username, group_list);
+    // Retrieve all user data
+    getAllUserData();
+    // Retrieve all group data
+    getAllGroupData();
   }, []);
   return (
     <div>
       {/* Header */}
       <HeaderAdmin />
-
       {/* Body */}
       <div className="container py-md-5">
         <div className="row">
           {/* View & edit user table */}
-          <div className="col-lg-7">
-            <h1>Table is here</h1>
+          <div className="col-lg-9">
+            {/* <h1>Table is here</h1> */}
+            {userData === "" || groupData === "" ? null : <UserTable userData={userData} groupData={groupData} />}
           </div>
 
           {/* Create Group & User form */}
-          <div className="col-lg-5 pl-lg-5 pb-3 py-lg-5">
-            {/* Create Group Header */}
-            <div className="w3-container w3-teal">
-              <h3 onClick={showCreateGroup} style={{ cursor: "pointer" }}>
-                Create Group
-                <i className="fa fa-caret-down" style={{ fontSize: "30px", position: "absolute", right: "30px" }}></i>
-              </h3>
-            </div>
-            {/* Create Group Form */}
-            <form onSubmit={handleCreateGroupSubmit} id="create-group-form" style={{ display: "none" }}>
-              <div className="form-group">
-                {/* Success message */}
-                <label htmlFor="success-message" className="text-muted mb-1" style={{ paddingTop: "20px" }}>
-                  <h6 style={{ color: "green" }}>
-                    <b>{createGroupNameSuccess}</b>
-                  </h6>
-                </label>
-                {/* Input & validation message display */}
-                <input onChange={e => setCreateGroupName(e.target.value)} id="create-group" name="username" className="form-control" type="text" placeholder="Enter a group name" autoComplete="off" required />
-                <label htmlFor="createGroupValidation" className="text-muted mb-1">
-                  <h6 style={{ color: "red" }}>{createGroupNameValidation}</h6>
-                </label>
-              </div>
-              {/* Create group button*/}
-              <button type="submit" className="py-3 mt-4 btn btn-lg btn-success btn-block">
-                Create
-              </button>
-            </form>
-
+          <div className="col-lg-3 pl-lg-5 pb-3 py-lg-5">
             {/* Create User Header */}
-            <div className="w3-container w3-red" style={{ marginTop: "20px" }}>
-              <h3 onClick={showCreateUser} style={{ cursor: "pointer" }}>
+            <div className="w3-container w3-red">
+              <h4 onClick={showCreateUser} style={{ cursor: "pointer" }}>
                 Create User
                 <i className="fa fa-caret-down" style={{ fontSize: "30px", position: "absolute", right: "30px" }}></i>
-              </h3>
+              </h4>
             </div>
             <form onSubmit={handleCreateUserSubmit} id="create-user-form" style={{ display: "none" }}>
               <div className="form-group">
@@ -225,6 +228,34 @@ function UserManagement() {
                   <h6 style={{ color: "red" }}>{createUserPasswordValidation}</h6>
                 </label>
               </div>
+              <button type="submit" className="py-3 mt-4 btn btn-lg btn-success btn-block">
+                Create
+              </button>
+            </form>
+
+            {/* Create Group Header */}
+            <div className="w3-container w3-teal" style={{ marginTop: "20px" }}>
+              <h4 onClick={showCreateGroup} style={{ cursor: "pointer" }}>
+                Create Group
+                <i className="fa fa-caret-down" style={{ fontSize: "30px", position: "absolute", right: "30px" }}></i>
+              </h4>
+            </div>
+            {/* Create Group Form */}
+            <form onSubmit={handleCreateGroupSubmit} id="create-group-form" style={{ display: "none" }}>
+              <div className="form-group">
+                {/* Success message */}
+                <label htmlFor="success-message" className="text-muted mb-1" style={{ paddingTop: "20px" }}>
+                  <h6 style={{ color: "green" }}>
+                    <b>{createGroupNameSuccess}</b>
+                  </h6>
+                </label>
+                {/* Input & validation message display */}
+                <input onChange={e => setCreateGroupName(e.target.value)} id="create-group" name="username" className="form-control" type="text" placeholder="Enter a group name" autoComplete="off" required />
+                <label htmlFor="createGroupValidation" className="text-muted mb-1">
+                  <h6 style={{ color: "red" }}>{createGroupNameValidation}</h6>
+                </label>
+              </div>
+              {/* Create group button*/}
               <button type="submit" className="py-3 mt-4 btn btn-lg btn-success btn-block">
                 Create
               </button>
