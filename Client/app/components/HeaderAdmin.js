@@ -30,7 +30,7 @@ function HeaderAdmin() {
         <div className="mb-0 pt-2 pt-md-0">
           <div className="row align-items-center">
             <div className="col-md-auto">
-              <button onClick={userProfile} className="btn btn-info ">
+              <button onClick={userProfile} className="btn " style={{ backgroundColor: "#C8B241", color: "white" }}>
                 Profile
               </button>
             </div>

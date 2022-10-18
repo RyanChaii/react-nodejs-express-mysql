@@ -29,11 +29,13 @@ function UserTable(props) {
         // setCellPassword(userData[i].password);
         setCellEmail(userData[i].email);
         setCellIsActive(userData[i].is_active);
-        const userGroupArray = userData[i].group_list.split(",");
-        var userGroupDefault = userGroupArray.map(group => {
-          return { value: group, label: group };
-        });
-        setCellGroup(userGroupDefault);
+        if (userData[i].group_list.length > 0) {
+          const userGroupArray = userData[i].group_list.split(",");
+          var userGroupDefault = userGroupArray.map(group => {
+            return { value: group, label: group };
+          });
+          setCellGroup(userGroupDefault);
+        }
       }
     }
   }
