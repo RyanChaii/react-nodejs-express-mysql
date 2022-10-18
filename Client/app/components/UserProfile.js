@@ -77,6 +77,7 @@ function UserProfile() {
         setEmail("");
         setPassword("");
         document.getElementById("email").value = "";
+        document.getElementById("password").value = "";
       }
     } catch (e) {
       setMessage(e);
@@ -104,7 +105,7 @@ function UserProfile() {
     <div>
       {isAdmin ? <HeaderAdmin /> : <Header />}
       <div className="container">
-        <div className="col-lg-6 pl-lg-5 pb-3 py-lg-5" style={{ margin: "auto" }}>
+        <div className="col-lg-8" style={{ margin: "auto" }}>
           <form onSubmit={handleEditProfileSubmit}>
             {/* Display username */}
             <div className="form-group">
@@ -151,7 +152,7 @@ function UserProfile() {
                 <h6 style={{ color: "red" }}>{passwordValidation}</h6>
               </label>
             </div>
-            <button type="submit" className="py-3 mt-4 btn btn-lg btn-success btn-block">
+            <button type="submit" className="btn btn-lg btn-success btn-block">
               Update Profile
             </button>
           </form>

@@ -66,6 +66,8 @@ function UserManagement() {
       } else {
         setCreateGroupNameValidation("");
         setCreateGroupNameSuccess(response.data.message);
+        // Rerender table
+        getAllGroupData();
       }
     } catch (e) {
       console.log(e);
@@ -124,6 +126,8 @@ function UserManagement() {
         // Set success message
         setCreateUserMessage(response.data.data.message);
         document.getElementById("createuserid").style.color = "green";
+        // Rerender table
+        getAllUserData();
       }
     } catch (e) {
       console.log(e);
@@ -145,6 +149,7 @@ function UserManagement() {
   async function getAllGroupData() {
     try {
       const response = await Axios.get("http://localhost:3000/usermanagement/getallgroup");
+      // console.log(response.data.message);
       setGroupData(response.data.message);
     } catch (e) {
       console.log(e);
@@ -172,16 +177,16 @@ function UserManagement() {
       {/* Header */}
       <HeaderAdmin />
       {/* Body */}
-      <div className="container py-md-5">
-        <div className="row">
+      <div className="container py-md-2">
+        <div className="'row'">
           {/* View & edit user table */}
-          <div className="col-lg-9">
+          <div className="col-lg-12">
             {/* <h1>Table is here</h1> */}
             {userData === "" || groupData === "" ? null : <UserTable userData={userData} groupData={groupData} />}
           </div>
 
           {/* Create Group & User form */}
-          <div className="col-lg-3 pl-lg-5 pb-3 py-lg-5">
+          <div className="col-lg-3">
             {/* Create User Header */}
             <div className="w3-container w3-red">
               <h4 onClick={showCreateUser} style={{ cursor: "pointer" }}>
