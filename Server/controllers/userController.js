@@ -361,7 +361,7 @@ const createGroup = (req, res) => {
   if (!groupname_input.match(groupnamePattern) || groupname_input.length < 4) {
     return res.status(200).send({
       success: false,
-      message: "Incorrect group name format, please have at least 3 characters, no special characters and space allowed"
+      message: "Incorrect group name format, please have at least 4 characters, no special characters and space allowed"
     });
   }
 
