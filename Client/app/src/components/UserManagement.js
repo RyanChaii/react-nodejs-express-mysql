@@ -181,15 +181,9 @@ function UserManagement() {
       <HeaderAdmin />
       {/* Body */}
       <div className="container py-md-2">
-        <div className="'row'">
-          {/* View & edit user table */}
-          <div className="col-lg-12">
-            {/* <h1>Table is here</h1> */}
-            {userData === "" || groupData === "" ? null : <UserTable userData={userData} groupData={groupData} tableEdit={[tableEdit, setTableEdit]} />}
-          </div>
-
+        <div className="row">
           {/* Create Group & User form */}
-          <div className="col-lg-3">
+          <div className="col-lg-6">
             {/* Create User Header */}
             <div className="w3-container w3-red">
               <h4 onClick={showCreateUser} style={{ cursor: "pointer" }}>
@@ -198,7 +192,7 @@ function UserManagement() {
               </h4>
             </div>
             <form onSubmit={handleCreateUserSubmit} id="create-user-form" style={{ display: "none" }}>
-              <div className="form-group">
+              <div className="form-group ">
                 {/* Create group label */}
                 <label htmlFor="createuser-message" className="text-muted mb-1">
                   <h6 id="createuserid" style={{ color: "green" }}>
@@ -240,9 +234,11 @@ function UserManagement() {
                 Create
               </button>
             </form>
+          </div>
 
-            {/* Create Group Header */}
-            <div className="w3-container w3-teal" style={{ marginTop: "20px" }}>
+          {/* Create Group Header */}
+          <div className="col-lg-6">
+            <div className="w3-container w3-teal">
               <h4 onClick={showCreateGroup} style={{ cursor: "pointer" }}>
                 Create Group
                 <i className="fa fa-caret-down" style={{ fontSize: "30px", position: "absolute", right: "30px" }}></i>
@@ -268,6 +264,11 @@ function UserManagement() {
                 Create
               </button>
             </form>
+          </div>
+          {/* Above div create user and group form*/}
+          {/* View & edit user table */}
+          <div className="col-lg-12" style={{ marginTop: "40px" }}>
+            {userData === "" || groupData === "" ? null : <UserTable userData={userData} groupData={groupData} tableEdit={[tableEdit, setTableEdit]} />}
           </div>
         </div>
       </div>

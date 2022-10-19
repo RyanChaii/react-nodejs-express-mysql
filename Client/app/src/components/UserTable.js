@@ -91,7 +91,7 @@ function UserTable(props) {
     <div className="wrapper-editor">
       <ToastContainer />
       <table id="dtBasicExample-1" className="table table-striped table-bordered" cellSpacing="0" style={{ tableLayout: "auto" }}>
-        <thead>
+        <thead style={{ backgroundColor: "darkgray" }}>
           <tr>
             <th className="th-sm">Username</th>
             <th className="th-sm">Password</th>
