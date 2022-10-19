@@ -449,28 +449,19 @@ const updateUser = async (req, res) => {
   // Empty sql statement
   var sql = "";
 
-  // Empty field was submitted
-  if (email_input.length < 1 && password_input.length < 1) {
-    return res.status(200).send({
-      success: false,
-      data: {
-        message: "No changes detected"
-      }
-    });
-  }
-
   // Only email field are edited
-  else if (email_input.length > 0 && password_input.length < 1) {
+  if (email_input.length > 0 && password_input.length < 1) {
     // Perform user input validation
     if (!email_input.match(emailPattern)) {
       return res.status(200).send({
         success: false,
-        data: {
-          email_field: "Incorrect email, please make changes",
-          pw_field: ""
-        }
+        message: "Incorrect email, please make changes"
       });
     }
+    // data: {
+    //   email_field: "Incorrect email, please make changes",
+    //   pw_field: ""
+    // }
     // Correct user input, performing email update
     else {
       sql = `UPDATE user SET email = '${email_input}', is_active = '${is_active_input}', group_list = '${group_list_input}' WHERE username = '${username}'`;
@@ -483,12 +474,13 @@ const updateUser = async (req, res) => {
     if (!password_input.match(passwordPattern)) {
       return res.status(200).send({
         success: false,
-        data: {
-          email_field: "",
-          pw_field: "Incorrect password format, please have at minimum 8 and maximum 10. Please include at least 1 alphabet, 1 number and 1 special characters"
-        }
+        message: "Incorrect password format, please have at minimum 8 and maximum 10. Please include at least 1 alphabet, 1 number and 1 special characters"
       });
     }
+    // data: {
+    //   email_field: "",
+    //   pw_field: "Incorrect password format, please have at minimum 8 and maximum 10. Please include at least 1 alphabet, 1 number and 1 special characters"
+    // }
     // Correct user input, performing password update
     else {
       sql = `UPDATE user SET password = '${hashpw}', is_active = '${is_active_input}', group_list = '${group_list_input}' WHERE username = '${username}'`;
@@ -501,18 +493,12 @@ const updateUser = async (req, res) => {
     if (!password_input.match(passwordPattern)) {
       return res.status(200).send({
         success: false,
-        data: {
-          email_field: "",
-          pw_field: "Incorrect password format, please have at minimum 8 and maximum 10. Please include at least 1 alphabet, 1 number and 1 special characters"
-        }
+        message: "Incorrect password format, please have at minimum 8 and maximum 10. Please include at least 1 alphabet, 1 number and 1 special characters"
       });
     } else if (!email_input.match(emailPattern)) {
       return res.status(200).send({
         success: false,
-        data: {
-          email_field: "Incorrect email, please make changes",
-          pw_field: ""
-        }
+        message: "Incorrect email, please make changes"
       });
     }
     // Correct user input, performing password update
@@ -524,19 +510,17 @@ const updateUser = async (req, res) => {
   db.query(sql, (err, results) => {
     // SQL error messages
     if (err) {
-      res.status(200).send({
+      return res.status(200).send({
         success: false,
-        data: err.code
+        message: "Error updating user"
       });
     }
     // Successful messages
     else {
       // console.log(sql);
-      res.status(200).send({
+      return res.status(200).send({
         success: true,
-        data: {
-          message: "User profile Updated"
-        }
+        message: "User Profile Updated"
       });
     }
   });
