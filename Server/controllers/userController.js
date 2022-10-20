@@ -563,7 +563,7 @@ const authUser = async (req, res) => {
       });
     }
   } else {
-    res.status(200).send({
+    return res.status(200).send({
       login: false,
       isAdmin: checkgroup_tf
     });

@@ -68,6 +68,7 @@ function UserManagement() {
       } else {
         setCreateGroupNameValidation("");
         setCreateGroupNameSuccess(response.data.message);
+        document.getElementById("create-group").value = "";
         // Rerender table
         getAllGroupData();
       }

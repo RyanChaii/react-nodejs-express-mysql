@@ -30,6 +30,9 @@ function UserTable(props) {
         // Set selected cell email
         setCellEmail(userData[i].email);
         // Set selected cell if user is active
+        // if (username == "admin") {
+        //   document.getElementById("is-active-switch").isDisabled = true;
+        // }
         setCellIsActive(userData[i].is_active);
         // Check if user object contain group, else do not populate
         if (userData[i].group_list.length > 0) {
@@ -115,12 +118,12 @@ function UserTable(props) {
                     <input id="edit-email" type="email" onChange={e => setCellEmail(e.target.value)} value={cellEmail} />
                   </td>
                   <td>
-                    <div style={{ width: "200px" }}>
+                    <div style={{ width: "300px" }}>
                       <Select isMulti onChange={e => setCellGroup(e)} defaultValue={cellGroup} value={cellGroup.value} options={groupDataOptions} className="basic-multi-select" classNamePrefix="select" />
                     </div>
                   </td>
                   <td>
-                    <Switch checked={Boolean(cellIsActive)} onChange={e => setCellIsActive(e)} />
+                    <Switch id="is-active-switch" checked={Boolean(cellIsActive)} onChange={e => setCellIsActive(e)} disabled={cellUsername == "admin" ? 1 : 0} />
                   </td>
                   <td>
                     {/* Save Button */}

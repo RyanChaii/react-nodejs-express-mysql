@@ -15,7 +15,7 @@ function Header() {
   }
 
   return (
-    <header className="header-bar bg-primary mb-3">
+    <header className="header-bar mb-3" style={{ backgroundColor: "black" }}>
       <div className="container d-flex flex-column flex-md-row align-items-center p-3">
         <h1 className="my-0 mr-md-auto font-weight-normal">
           <a href="/dashboard" className="text-white">
@@ -26,7 +26,7 @@ function Header() {
         <div className="mb-0 pt-2 pt-md-0">
           <div className="row align-items-center">
             <div className="col-md-auto">
-              <button onClick={userProfile} className="btn btn-info" style={{ backgroundColor: "#C8B241", color: "white" }}>
+              <button onClick={userProfile} className="btn" style={{ backgroundColor: "#C8B241", color: "white" }}>
                 Profile
               </button>
             </div>
