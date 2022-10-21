@@ -24,20 +24,22 @@ function UserProfile() {
   const [message, setMessage] = useState("");
 
   // Authenticate user
-  async function authuser(token, username, group_list) {
+  async function authuser(token, check_is_admin) {
+    // Api call to authenticate and check group user
     try {
-      // Api call to authenticate and check group user
-      const response = await Axios.get("http://localhost:3000/authuser", { params: { token: token, username: username, group_list: group_list } });
+      const response = await Axios.get("http://localhost:3000/authuser", { params: { token: token, check_is_admin: check_is_admin } });
       // Get if user are valid
       const islogin = response.data.login;
       // Get if user is admin
       const isadmin = response.data.isAdmin;
       // Get decoded jwt code username
-      const decoded_un = response.data.data.username;
+      const decoded_username = response.data.username;
+      // Set username state
+      setUsername(decoded_username);
       // Set admin state
       setIsAdmin(isadmin);
 
-      if (!islogin || username != decoded_un) {
+      if (!islogin) {
         sessionStorage.clear();
         navigate("/");
       }
@@ -46,6 +48,7 @@ function UserProfile() {
       navigate("/");
     }
   }
+
   // Retrieve profile initial details (use effect)
   async function retrieveProfile(username) {
     try {
@@ -90,17 +93,13 @@ function UserProfile() {
     document.title = "User Profile";
     // Retrieve user token
     const userlogintoken = sessionStorage.getItem("token");
-    // Retrieve username
-    const username = sessionStorage.getItem("username");
     // Check group variable
-    const group_list = "admin";
+    const check_is_admin = "admin";
     // Async method call for verify user
-    authuser(userlogintoken, username, group_list);
-    // Display username
-    setUsername(username);
+    authuser(userlogintoken, check_is_admin);
     // Async method to retrieve initial profile detail
     retrieveProfile(username);
-  }, []);
+  }, [{ username }]);
   return (
     <div>
       {isAdmin ? <HeaderAdmin /> : <Header />}
@@ -163,3 +162,29 @@ function UserProfile() {
 }
 
 export default UserProfile;
+
+// Authenticate user
+// async function authuser(token, check_is_admin) {
+//   // Api call to authenticate and check group user
+//   try {
+//     const response = await Axios.get("http://localhost:3000/authuser", { params: { token: token, check_is_admin: check_is_admin } });
+//     // Get if user are valid
+//     const islogin = response.data.login;
+//     // Get if user is admin
+//     const isadmin = response.data.isAdmin;
+//     // Get decoded jwt code username
+//     const decoded_username = response.data.username;
+//     // Set username state
+//     setUsername(decoded_username);
+//     // Set admin state
+//     setIsAdmin(isadmin);
+
+//     if (!islogin) {
+//       sessionStorage.clear();
+//       navigate("/");
+//     }
+//   } catch (e) {
+//     console.log(e);
+//     navigate("/");
+//   }
+// }

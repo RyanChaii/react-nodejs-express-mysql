@@ -26,8 +26,6 @@ function Login() {
         // Setting JWT token into session storage
         sessionStorage.setItem("token", token);
 
-        // Setting username into session storage
-        sessionStorage.setItem("username", username);
         // Valid login, nav to dashboard
         navigate("/dashboard");
       } else {

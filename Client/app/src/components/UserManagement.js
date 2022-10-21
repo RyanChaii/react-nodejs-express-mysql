@@ -11,6 +11,8 @@ function UserManagement() {
   const navigate = useNavigate();
   // Check if admin state
   const [isAdmin, setIsAdmin] = useState();
+  // Set username state
+  const [username, setUsername] = useState();
   // Create group state
   const [createGroupName, setCreateGroupName] = useState();
   const [createGroupNameValidation, setCreateGroupNameValidation] = useState();
@@ -32,20 +34,22 @@ function UserManagement() {
   const [tableEdit, setTableEdit] = useState(false);
 
   // Authenticate user
-  async function authuser(token, username, group_list) {
+  async function authuser(token, check_is_admin) {
+    // Api call to authenticate and check group user
     try {
-      // Api call to authenticate and check group user
-      const response = await Axios.get("http://localhost:3000/authuser", { params: { token: token, username: username, group_list: group_list } });
+      const response = await Axios.get("http://localhost:3000/authuser", { params: { token: token, check_is_admin: check_is_admin } });
       // Get if user are valid
       const islogin = response.data.login;
       // Get if user is admin
       const isadmin = response.data.isAdmin;
       // Get decoded jwt code username
-      const decoded_un = response.data.data.username;
+      const decoded_username = response.data.username;
+      // Set username state
+      setUsername(decoded_username);
       // Set admin state
       setIsAdmin(isadmin);
 
-      if (!islogin || username != decoded_un || !isadmin) {
+      if (!islogin || !isadmin) {
         sessionStorage.clear();
         navigate("/");
       }
@@ -164,17 +168,14 @@ function UserManagement() {
     document.title = "User Management";
     // Retrieve user token
     const userlogintoken = sessionStorage.getItem("token");
-    // Retrieve username
-    const username = sessionStorage.getItem("username");
     // Check group variable
-    const group_list = "admin";
+    const check_is_admin = "admin";
     // Async method call for verify user
-    authuser(userlogintoken, username, group_list);
+    authuser(userlogintoken, check_is_admin);
     // Retrieve all user data
     getAllUserData();
     // Retrieve all group data
     getAllGroupData();
-    console.log(tableEdit);
   }, [tableEdit]);
   return (
     <div>

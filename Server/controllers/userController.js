@@ -528,44 +528,55 @@ const updateUser = async (req, res) => {
 
 // Authenticate user
 const authUser = async (req, res) => {
-  // Get token value to the json body
-  const token = req.query.token;
-  // Retrieve username for checkgroup
-  const username = req.query.username;
-  // Retrieve group_list for checkgroup
-  const group_list = req.query.group_list;
-  // Return true false
-  const checkgroup_tf = await Checkgroup(username, group_list)
-    .then(resolve => {
-      if (resolve) {
-        return true;
-      } else {
-        return false;
+  try {
+    // Get token value from the json body
+    const token = req.query.token;
+    // Retrieve group_list for checkgroup
+    const check_is_admin = req.query.check_is_admin;
+    // If the token is present
+    if (token) {
+      try {
+        const decoded_token = jwt.verify(token, process.env.JWT_SECRET);
+        const username = decoded_token.username;
+        // Perform check group
+        const checkgroup_tf = await Checkgroup(username, check_is_admin)
+          .then(resolve => {
+            if (resolve) {
+              return true;
+            } else {
+              return false;
+            }
+          })
+          .catch(reject => {
+            return false;
+          });
+
+        // Send successful response
+        return res.status(200).send({
+          login: true,
+          isAdmin: checkgroup_tf,
+          username: username
+        });
+      } catch (e) {
+        // Error handling token or any other thing
+        console.log(e);
+        console.log("Issues with either verifying token or checkgroup");
+        return res.status(200).send({
+          login: false
+        });
       }
-    })
-    .catch(reject => {
-      return false;
-    });
-  // If the token is present
-  if (token) {
-    try {
-      const decode = jwt.verify(token, process.env.JWT_SECRET);
-      res.status(200).send({
-        login: true,
-        isAdmin: checkgroup_tf,
-        data: decode
-      });
-    } catch (e) {
-      console.log(e);
-      res.status(200).send({
-        login: false,
-        isAdmin: checkgroup_tf
+    }
+    // No token present
+    else {
+      return res.status(200).send({
+        login: false
       });
     }
-  } else {
+  } catch (e) {
+    // Error retrieving token or group_list from front end
+    console.log("Error from the front end");
     return res.status(200).send({
-      login: false,
-      isAdmin: checkgroup_tf
+      login: false
     });
   }
 };
