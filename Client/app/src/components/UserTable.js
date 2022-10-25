@@ -30,18 +30,19 @@ function UserTable(props) {
         // Set selected cell email
         setCellEmail(userData[i].email);
         // Set selected cell if user is active
-        // if (username == "admin") {
-        //   document.getElementById("is-active-switch").isDisabled = true;
-        // }
         setCellIsActive(userData[i].is_active);
         // Check if user object contain group, else do not populate
         if (userData[i].group_list.length > 0) {
+          // Split comma
           const userGroupArray = userData[i].group_list.split(",");
+          // Return in value label format for react select
           var userGroupDefault = userGroupArray.map(group => {
             return { value: group, label: group };
           });
           setCellGroup(userGroupDefault);
-        } else {
+        }
+        // Set cell group as empty
+        else {
           setCellGroup("");
         }
       }
@@ -61,23 +62,29 @@ function UserTable(props) {
       setCellGroup("");
       groupMerge = "";
     }
+    // Slide true or false for is_active
     var isact = cellIsActive ? 1 : 0;
 
     try {
       const response = await Axios.post("http://localhost:3000/usermanagement/updateuser", { username: cellUsername, email: cellEmail, password: cellPassword, is_active: isact, group_list: groupMerge });
-      // Setting validation
+      // Profile updated successfully
       if (response.data.message == "User Profile Updated") {
         toast.success(response.data.message, {
           position: toast.POSITION.TOP_CENTER,
           autoClose: 3000
         });
+        // Remove state for username
         setCellUsername("");
+        // tableEdit[0] = getting state value from props
+        // tableEdit[1] = setting state value from props
+        // Adjust state value from props and perform callback on change detection
         if (props.tableEdit[0] == false) {
           props.tableEdit[1](true);
         } else {
           props.tableEdit[1](false);
         }
       }
+      // Update fail
       if (!response.data.success) {
         toast.error(response.data.message, {
           position: toast.POSITION.TOP_CENTER,
@@ -86,6 +93,7 @@ function UserTable(props) {
         console.log(response.data.message);
       }
     } catch (e) {
+      // Catch any unidentify error
       console.log(e);
     }
   }
@@ -123,7 +131,7 @@ function UserTable(props) {
                     </div>
                   </td>
                   <td>
-                    <Switch id="is-active-switch" checked={Boolean(cellIsActive)} onChange={e => setCellIsActive(e)} disabled={cellUsername == "admin" ? 1 : 0} />
+                    <Switch id="is-active-switch" checked={Boolean(cellIsActive)} onChange={e => setCellIsActive(e)} disabled={cellUsername == "admin" ? Boolean(1) : Boolean(0)} />
                   </td>
                   <td>
                     {/* Save Button */}
@@ -149,14 +157,15 @@ function UserTable(props) {
                         e.preventDefault();
                         setCellUsername("");
                       }}
-                      // onClick={setAlert("Edit success!", "success")}
                     >
                       <i className="fa fa-ban" style={{ fontSize: "25px" }}></i>
                     </button>
                   </td>
                 </tr>
               );
-            } else {
+            }
+            // Default Mode
+            else {
               return (
                 <tr key={user.username}>
                   <td>{user.username}</td>
@@ -175,8 +184,6 @@ function UserTable(props) {
                       onClick={e => {
                         e.stopPropagation();
                         e.preventDefault();
-                        // console.log("hi");
-                        // console.log(user.username);
                         setCellUsername(user.username);
                         populateTable(user.username);
                       }}

@@ -98,6 +98,7 @@ function UserProfile() {
     // Async method call for verify user
     authuser(userlogintoken, check_is_admin);
     // Async method to retrieve initial profile detail
+    console.log(username);
     retrieveProfile(username);
   }, [{ username }]);
   return (

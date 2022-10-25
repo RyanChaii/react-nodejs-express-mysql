@@ -352,16 +352,16 @@ const updateProfile = async (req, res) => {
 // Create group at usermanagement (admin)
 const createGroup = (req, res) => {
   // Retrieving admin input
-  var groupname_input = req.body.group_name.toLowerCase();
+  var groupname_input = req.body.group_name;
 
   // Regex to validate user input
   const groupnamePattern = /^[A-Za-z0-9]+$/;
 
   // Group name input validation
-  if (!groupname_input.match(groupnamePattern) || groupname_input.length < 4) {
+  if (!groupname_input.match(groupnamePattern) || groupname_input.length < 2) {
     return res.status(200).send({
       success: false,
-      message: "Incorrect group name format, please have at least 4 characters, no special characters and space allowed"
+      message: "Incorrect group name format, please have at least 2 characters, no special characters and space allowed"
     });
   }
 
