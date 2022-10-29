@@ -20,7 +20,7 @@ function Header() {
         <h1 className="my-0 mr-md-auto font-weight-normal">
           <a href="/dashboard" className="text-white">
             {" "}
-            TMS{" "}
+            KanBan{" "}
           </a>
         </h1>
         <div className="mb-0 pt-2 pt-md-0">
