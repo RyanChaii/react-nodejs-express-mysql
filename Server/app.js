@@ -21,8 +21,10 @@ app.use(cookieParser());
 
 // Importing all routes
 const user = require("./routes/user");
+const kanban = require("./routes/kanban");
 
 app.use(user);
+app.use(kanban);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {

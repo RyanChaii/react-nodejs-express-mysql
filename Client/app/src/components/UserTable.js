@@ -100,7 +100,6 @@ function UserTable(props) {
 
   return (
     <div className="wrapper-editor">
-      <ToastContainer />
       <table id="dtBasicExample-1" className="table table-striped table-bordered" cellSpacing="0" style={{ tableLayout: "auto" }}>
         <thead style={{ backgroundColor: "darkgray" }}>
           <tr>
