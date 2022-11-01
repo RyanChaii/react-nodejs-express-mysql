@@ -98,4 +98,51 @@ const createApplication = async (req, res, next) => {
   });
 };
 
-module.exports = { getAllApplication, createApplication };
+// Edit application
+const editApplication = async (req, res, next) => {
+  // Retrieving user input
+  var acronym_input = req.body.app_acronym;
+  var description_input = req.body.app_description;
+  var startdate_input = req.body.app_startdate.slice(0, 10);
+  var enddate_input = req.body.app_enddate.slice(0, 10);
+  var permitcreate_input = req.body.app_permit_create;
+  var permitopen_input = req.body.app_permit_open;
+  var permittodolist_input = req.body.app_permit_todolist;
+  var permitdoing_input = req.body.app_permit_doing;
+  var permitdone_input = req.body.app_permit_done;
+
+  let sql = `UPDATE application 
+  SET app_description = '${description_input}', app_startdate = '${startdate_input}',
+  app_enddate = '${enddate_input}', app_permit_create = '${permitcreate_input}', 
+  app_permit_open = '${permitopen_input}', app_permit_todolist = '${permittodolist_input}', 
+  app_permit_doing = '${permitdoing_input}', app_permit_done = '${permitdone_input}'  
+  WHERE app_acronym= '${acronym_input}'`;
+
+  db.query(sql, (err, results) => {
+    try {
+      // SQL error messages
+      if (err) {
+        console.log("Error");
+        console.log(err);
+        return res.status(200).send({
+          success: false,
+          message: "Error updating app, please try again later"
+        });
+      }
+      // Successful messages
+      else {
+        return res.status(200).send({
+          success: true,
+          message: "Application updated successfully"
+        });
+      }
+    } catch (e) {
+      return res.status(200).send({
+        success: false,
+        message: "Error updating app, try again later"
+      });
+    }
+  });
+};
+
+module.exports = { getAllApplication, createApplication, editApplication };

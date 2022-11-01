@@ -9,5 +9,7 @@ const kanban = require("../controllers/kanbanController");
 router.route("/kanban/getallapp").get(kanban.getAllApplication);
 // Create app
 router.route("/kanban/createapp").post(kanban.createApplication);
+// Edit app
+router.route("/kanban/editapp").post(kanban.editApplication);
 
 module.exports = router;

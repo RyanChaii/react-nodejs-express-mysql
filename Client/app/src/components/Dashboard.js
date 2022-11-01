@@ -169,24 +169,68 @@ function Dashboard() {
 
   // Open edit application modal
   function openEditAppModalFun(app) {
-    console.log(String(app.app_enddate.slice(0, 10)));
-    console.log(app.app_rnumber);
     setapp_acronym(app.app_acronym);
     setapp_description(app.app_description);
     setapp_rnumber(app.app_rnumber);
-    // setapp_startdate(app.app_startdate);
-    // setapp_enddate(String(app.app_enddate.slice(0, 10)));
-    setapp_permit_create(app.app_permit_create);
-    setapp_permit_open(app.app_permit_open);
-    setapp_permit_todolist(app.app_permit_todolist);
-    setapp_permit_doing(app.app_permit_doing);
-    setapp_permit_done(app.app_permit_done);
+    // Start and end date (require to convert to date format)
+    setapp_startdate(new Date(app.app_startdate));
+    setapp_enddate(new Date(app.app_enddate));
+    // Retrieve all group date
+    getAllGroupData();
+    // Set each selected group for each permit
+    setapp_permit_create(() => {
+      return { value: app.app_permit_create, label: app.app_permit_create };
+    });
+    setapp_permit_open(() => {
+      return { value: app.app_permit_open, label: app.app_permit_open };
+    });
+    setapp_permit_todolist(() => {
+      return { value: app.app_permit_todolist, label: app.app_permit_todolist };
+    });
+    setapp_permit_doing(() => {
+      return { value: app.app_permit_doing, label: app.app_permit_doing };
+    });
+    setapp_permit_done(() => {
+      return { value: app.app_permit_done, label: app.app_permit_done };
+    });
+
     setOpenEditAppModal(true);
   }
 
   // Modal for close create application
   function closeEditAppModalFun() {
+    resetAppState();
     setOpenEditAppModal(false);
+  }
+
+  // Edit Application
+  async function handleEditApplicationSubmit(e) {
+    e.preventDefault();
+    try {
+      const response = await Axios.post("http://localhost:3000/kanban/editapp", { app_acronym: app_acronym, app_description: app_description, app_startdate: app_startdate, app_enddate: app_enddate, app_permit_create: app_permit_create.value, app_permit_open: app_permit_open.value, app_permit_todolist: app_permit_todolist.value, app_permit_doing: app_permit_doing.value, app_permit_done: app_permit_done.value });
+      console.log(response.data);
+
+      if (response.data.message == "Application updated successfully") {
+        toast.success(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+        // Update the application
+        getAllApplication();
+      }
+      // Failed to create application
+      if (!response.data.success) {
+        toast.error(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+      }
+    } catch (e) {
+      toast.error("Problem updating app, please ensure all fields are filled correctly", {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 2000
+      });
+    }
   }
 
   // Authenticate user
@@ -301,14 +345,14 @@ function Dashboard() {
             <label htmlFor="app_startdate" className="text-muted mb-1">
               <h5>Start Date</h5>
             </label>
-            <DatePicker disabled={true} className="form-control" type="date" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" required />
+            <DatePicker className="form-control" type="date" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
           </div>
           {/* App End Date */}
           <div className="form-group">
             <label htmlFor="app_enddate" className="text-muted mb-1">
               <h5>End Date</h5>
             </label>
-            <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" required />
+            <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
           </div>
           {/* App Permit Create */}
           <div className="form-group">
@@ -355,7 +399,7 @@ function Dashboard() {
       <Modal isOpen={openEditAppModal} onRequestClose={closeEditAppModalFun} style={customStyles}>
         {/* <button onClick={closeModal}>close</button> */}
         <h2 style={{ paddingBottom: "20px" }}>Editing Application</h2>
-        <form onSubmit={handleCreateApplicationSubmit}>
+        <form onSubmit={handleEditApplicationSubmit}>
           {/* App Acronym */}
           <div className="form-group">
             <label htmlFor="app_acronym" className="text-muted mb-1">
@@ -384,49 +428,49 @@ function Dashboard() {
             <label htmlFor="app_startdate" className="text-muted mb-1">
               <h5>Start Date</h5>
             </label>
-            <DatePicker className="form-control" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" required />
+            <DatePicker className="form-control" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
           </div>
           {/* App End Date */}
           <div className="form-group">
             <label htmlFor="app_enddate" className="text-muted mb-1">
               <h5>End Date</h5>
             </label>
-            <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" required />
+            <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
           </div>
           {/* App Permit Create */}
           <div className="form-group">
             <label htmlFor="app_permitcreate" className="text-muted mb-1">
               <h5>App Permit Create</h5>
             </label>
-            <Select onChange={e => setapp_permit_create(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+            <Select onChange={e => setapp_permit_create(e)} value={groupData.value} options={groupData} defaultValue={app_permit_create} className="basic-multi-select" classNamePrefix="select" />
           </div>
           {/* App Permit Open */}
           <div className="form-group">
             <label htmlFor="app_permitopen" className="text-muted mb-1">
               <h5>App Permit Open</h5>
             </label>
-            <Select onChange={e => setapp_permit_open(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+            <Select onChange={e => setapp_permit_open(e)} value={groupData.value} options={groupData} defaultValue={app_permit_open} className="basic-multi-select" classNamePrefix="select" />
           </div>
           {/* App Permit ToDoList */}
           <div className="form-group">
             <label htmlFor="app_permittodolist" className="text-muted mb-1">
               <h5>App Permit ToDoList</h5>
             </label>
-            <Select onChange={e => setapp_permit_todolist(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+            <Select onChange={e => setapp_permit_todolist(e)} value={groupData.value} options={groupData} defaultValue={app_permit_todolist} className="basic-multi-select" classNamePrefix="select" />
           </div>
           {/* App Permit Doing */}
           <div className="form-group">
             <label htmlFor="app_permitdoing" className="text-muted mb-1">
               <h5>App Permit Doing</h5>
             </label>
-            <Select onChange={e => setapp_permit_doing(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+            <Select onChange={e => setapp_permit_doing(e)} value={groupData.value} options={groupData} defaultValue={app_permit_doing} className="basic-multi-select" classNamePrefix="select" />
           </div>
           {/* App Permit Done */}
           <div className="form-group">
             <label htmlFor="app_permitdone" className="text-muted mb-1">
               <h5>App Permit Done</h5>
             </label>
-            <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+            <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} defaultValue={app_permit_done} className="basic-multi-select" classNamePrefix="select" />
           </div>
           <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
             Create Application
