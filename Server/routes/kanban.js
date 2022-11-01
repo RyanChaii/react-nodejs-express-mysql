@@ -12,4 +12,9 @@ router.route("/kanban/createapp").post(kanban.createApplication);
 // Edit app
 router.route("/kanban/editapp").post(kanban.editApplication);
 
+// Create Plan
+router.route("/kanban/createplan").post(kanban.createPlan);
+// Get plan based on app_acronym
+router.route("/kanban/getplan").get(kanban.getPlan);
+
 module.exports = router;

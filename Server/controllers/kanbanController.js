@@ -145,4 +145,82 @@ const editApplication = async (req, res, next) => {
   });
 };
 
-module.exports = { getAllApplication, createApplication, editApplication };
+// Create plan
+const createPlan = async (req, res, next) => {
+  // Retrieving user input
+  var mvp_name_input = req.body.plan_mvp_name;
+  var startdate_input = req.body.plan_startdate.slice(0, 10);
+  var enddate_input = req.body.plan_enddate.slice(0, 10);
+  var acronym_input = req.body.app_acronym;
+  var colorcode_input = req.body.plan_colorcode;
+
+  // Regex to validate user input
+  const mvpnamePattern = /^[A-Za-z0-9_.]+$/;
+
+  // Plan MVP validation
+  if (!mvp_name_input.match(mvpnamePattern) || mvp_name_input.length < 3) {
+    return res.status(200).send({
+      success: false,
+      message: "Plan name require minimum at least 3 characters, no space and special character. But allow dot and underscore"
+    });
+  }
+
+  let sql = `INSERT into plan 
+  (plan_mvp_name, plan_startdate, plan_enddate, plan_app_acronym, plan_colorcode)  
+  VALUES ('${mvp_name_input}','${startdate_input}', '${enddate_input}', '${acronym_input}', '${colorcode_input}')`;
+
+  db.query(sql, (err, results) => {
+    try {
+      // SQL error messages
+      if (err) {
+        console.log("Error");
+        // console.log(err);
+        return res.status(200).send({
+          success: false,
+          message: "Error creating plan, ensure no duplicate plan name in the same application"
+        });
+      }
+      // Successful messages
+      else {
+        return res.status(200).send({
+          success: true,
+          message: "Plan created successfully"
+        });
+      }
+    } catch (e) {
+      if (e.code == "ER_DUP_ENTRY") {
+        return res.status(200).send({
+          success: false,
+          message: "No duplicate plan in the same application allowed"
+        });
+      } else {
+        return res.status(200).send({
+          success: false,
+          message: "Error creating plan, try again later"
+        });
+      }
+    }
+  });
+};
+
+// Retrieve plan according to app
+const getPlan = (req, res) => {
+  let sql = `SELECT * FROM plan WHERE plan_app_acronym = '${req.query.app_acronym}'`;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.log("Error retrieving plan");
+      res.status(200).send({
+        success: false,
+        message: "Error retrieving plan"
+      });
+    } else {
+      res.status(200).send({
+        success: true,
+        message: results
+      });
+    }
+  });
+};
+
+module.exports = { getAllApplication, createApplication, editApplication, createPlan, getPlan };

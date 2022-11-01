@@ -13,27 +13,122 @@ import "react-datepicker/dist/react-datepicker.css";
 // import react select
 import Select from "react-select";
 // import toastify
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 // import icon
 import { BsFillGearFill } from "react-icons/bs";
+// import card for kanban
+import { CRow, CCol, CCard, CCardBody, CCardTitle, CCardText, CButton, CCardHeader } from "@coreui/react";
+// import color picker
+import { SliderPicker } from "react-color";
 
 // Import my own component
 import Header from "./Header";
 import HeaderAdmin from "./HeaderAdmin";
 
-// Style for modal popup
-const customStyles = {
+// Style for create app modal popup
+const customStylesCreateApp = {
   content: {
     top: "50%",
-    left: "55%",
+    left: "50%",
     right: "auto",
     marginRight: "-50%",
     transform: "translate(-50%, -50%)",
     width: "60%",
-    height: "70%",
-    backgroundColor: "#C0D8D3"
+    height: "90%",
+    backgroundColor: "#90E3E3"
     // backgroundColor: "#e8edec"
+  },
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.75)",
+    backdropFilter: "blur(5px)"
+  }
+};
+// Style for edit App popup
+const customStylesEditApp = {
+  content: {
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    marginRight: "-50%",
+    transform: "translate(-50%, -50%)",
+    width: "60%",
+    height: "90%",
+    backgroundColor: "#E4EDB3"
+    // backgroundColor: "#e8edec"
+  },
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.75)",
+    backdropFilter: "blur(5px)"
+  }
+};
+// Style for create plan popup
+const customStylesCreatePlan = {
+  content: {
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    marginRight: "-50%",
+    transform: "translate(-50%, -50%)",
+    width: "60%",
+    height: "90%",
+    backgroundColor: "#B6AFE5"
+  },
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.75)",
+    backdropFilter: "blur(5px)"
+  }
+};
+
+// Style for edit Plan popup
+const customStylesEditPlan = {
+  content: {
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    marginRight: "-50%",
+    transform: "translate(-50%, -50%)",
+    width: "60%",
+    height: "90%",
+    backgroundColor: "#C0BCDA"
+  },
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.75)",
+    backdropFilter: "blur(5px)"
+  }
+};
+
+// Style for create task popup
+const customStylesCreateTask = {
+  content: {
+    top: "50%",
+    left: "50%",
+    right: "auto",
+    marginRight: "-50%",
+    transform: "translate(-50%, -50%)",
+    width: "60%",
+    height: "90%",
+    backgroundColor: "#B5EDB3"
   },
   overlay: {
     position: "fixed",
@@ -74,6 +169,28 @@ function Dashboard() {
   const [allAppData, setAllAppData] = useState("");
   // Create application Modal
   const [openEditAppModal, setOpenEditAppModal] = useState(false);
+  // Main application state (used for task & plan) state
+  const [main_app_acronym, set_main_app_acronym] = useState("None");
+  const [main_app_rnumber, set_main_app_rnumber] = useState("");
+  // Create plan Modal
+  const [openCreatePlanModal, setOpenCreatePlanModal] = useState(false);
+  // Create Plan State
+  const [plan_mvp_name, setplan_mvp_name] = useState("");
+  const [plan_startdate, setplan_startdate] = useState("");
+  const [plan_enddate, setplan_enddate] = useState("");
+  const [plan_colorcode, setplan_colorcode] = useState("");
+  // Plan based on acronym
+  const [planData, setPlanData] = useState("");
+  // Edit plan Modal
+  const [openEditPlanModal, setOpenEditPlanModal] = useState(false);
+  // Create task Modal
+  const [openCreateTaskModal, setOpenCreateTaskModal] = useState(false);
+  // Create task state
+  const [task_name, settask_name] = useState("");
+  const [task_description, settask_description] = useState("");
+  const [task_notes, settask_notes] = useState("");
+  const [task_plan, settask_plan] = useState("");
+  const [task_state, settask_state] = useState("");
 
   // Reset the state for application
   function resetAppState() {
@@ -93,6 +210,11 @@ function Dashboard() {
   function openAppModal() {
     resetAppState();
     getAllGroupData();
+    var appbtn = document.querySelectorAll(".btn-application");
+    appbtn.forEach(btn => {
+      btn.classList.add("disabled", true);
+    });
+
     setOpenCreateAppModal(true);
     console.log(groupData);
   }
@@ -100,6 +222,11 @@ function Dashboard() {
   // Modal for close create application
   function closeAppModal() {
     setOpenCreateAppModal(false);
+
+    var appbtn = document.querySelectorAll(".btn-application");
+    appbtn.forEach(btn => {
+      btn.classList.replace("disabled", false);
+    });
   }
 
   // Get group data to display for creation / edit application
@@ -233,6 +360,128 @@ function Dashboard() {
     }
   }
 
+  // Handle application onclick
+  async function handleApplicationOnClick(app_acronym) {
+    resetAppState();
+    setPlanData("");
+    getPlan(app_acronym);
+  }
+
+  // Modal for open create plan
+  function openCreatePlanModalFun() {
+    setOpenCreatePlanModal(true);
+  }
+
+  // Modal for close create plan
+  function closeCreatePlanModalFun() {
+    setplan_mvp_name("");
+    setplan_startdate("");
+    setplan_enddate("");
+    setplan_colorcode("");
+    setOpenCreatePlanModal(false);
+  }
+
+  // Create Plan
+  async function handleCreatePlanSubmit(e) {
+    e.preventDefault();
+    try {
+      const response = await Axios.post("http://localhost:3000/kanban/createplan", { plan_mvp_name: plan_mvp_name, plan_startdate: plan_startdate, plan_enddate: plan_enddate, plan_colorcode: plan_colorcode, app_acronym: main_app_acronym });
+      //   console.log(response.data);
+      if (response.data.message == "Plan created successfully") {
+        getPlan(main_app_acronym);
+        toast.success(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+      }
+      // Failed to create application
+      if (!response.data.success) {
+        toast.error(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+      }
+    } catch (e) {
+      toast.error("Problem creating plan, please ensure no plan duplication", {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 2000
+      });
+    }
+  }
+
+  // Get Plan based on app_acronym
+  async function getPlan(app_acronym) {
+    try {
+      const response = await Axios.get("http://localhost:3000/kanban/getplan", { params: { app_acronym: app_acronym } });
+      // console.log(response.data.message.length);
+      if (response.data.message.length > 0) {
+        setPlanData(response.data.message);
+      }
+    } catch (e) {
+      toast.error("Error retrieving plan, please try again later", {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 2000
+      });
+    }
+  }
+
+  // Modal for open edit plan
+  function openEditPlanModalFun() {
+    // setplan_mvp_name(plan.plan_mvp_name);
+    setOpenEditPlanModal(true);
+  }
+
+  // Modal for close edit plan
+  function closeEditPlanModalFun() {
+    setplan_mvp_name("");
+    setplan_startdate("");
+    setplan_enddate("");
+    setplan_colorcode("");
+    setOpenEditPlanModal(false);
+  }
+
+  // Modal for open create task
+  function openCreateTaskModalFun() {
+    setOpenCreateTaskModal(true);
+  }
+
+  // Modal for close create task
+  function closeCreateTaskModalFun() {
+    setOpenCreateTaskModal(false);
+  }
+
+  // Create Task
+  async function handleCreateTaskSubmit(e) {
+    e.preventDefault();
+    try {
+      const response = await Axios.post("http://localhost:3000/kanban/createtask", { app_acronym: app_acronym, app_description: app_description, app_rnumber: app_rnumber, app_startdate: app_startdate, app_enddate: app_enddate, app_permit_create: app_permit_create.value, app_permit_open: app_permit_open.value, app_permit_todolist: app_permit_todolist.value, app_permit_doing: app_permit_doing.value, app_permit_done: app_permit_done.value });
+      console.log(response.data);
+
+      if (response.data.message == "Task created successfully") {
+        toast.success(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+        // Remove create app state
+        resetAppState();
+        closeAppModal();
+        getAllApplication();
+      }
+      // Failed to create application
+      if (!response.data.success) {
+        toast.error(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+      }
+    } catch (e) {
+      toast.error("Problem creating app, please ensure no app duplication", {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 2000
+      });
+    }
+  }
+
   // Authenticate user
   async function authuser(token, check_is_admin) {
     // Api call to authenticate and check group user
@@ -276,7 +525,8 @@ function Dashboard() {
     <div>
       {isAdmin ? <HeaderAdmin /> : <Header />}
       <div className="row">
-        <div className="col-lg-2" style={{ contentAlign: "center", textAlign: "center" }}>
+        {/* Create and manage application */}
+        <div className="col-2" style={{ contentAlign: "center", textAlign: "center" }}>
           <Drawer open={true} direction="left" enableOverlay={false} className="application-drawer" style={{ backgroundColor: "black", position: "relative", color: "white" }}>
             {/* Create app button */}
             <button className="btn btn-info" id="btnCreateApp" onClick={openAppModal} style={{ marginBottom: "50px", marginTop: "50px" }}>
@@ -291,7 +541,16 @@ function Dashboard() {
               ? allAppData.map(app => {
                   return (
                     <div style={{ paddingBottom: "15px" }}>
-                      <button className="btn btn-warning btn-block" style={{ width: "80%", backgroundColor: "gold" }}>
+                      <button
+                        className="btn btn-warning btn-block btn-application"
+                        style={{ width: "80%", backgroundColor: "gold" }}
+                        onClick={e => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          set_main_app_acronym(app.app_acronym);
+                          handleApplicationOnClick(app.app_acronym);
+                        }}
+                      >
                         {app.app_acronym}
                         <BsFillGearFill
                           style={{ marginLeft: "10px", fontSize: "25px", position: "absolute", left: "70%" }}
@@ -309,13 +568,105 @@ function Dashboard() {
               : null}
           </Drawer>
         </div>
-        <div className="col-lg-6">
+
+        {/* Kan Ban board */}
+        <div className="col-lg-8" style={{ paddingLeft: "100px" }}>
           <h1>Welcome to TMS!</h1>
+          <h2>Selected Application: {main_app_acronym}</h2>
+          <CRow>
+            <CCol sm={2}>
+              <CCard>
+                <CCardHeader>
+                  <CCardTitle>Open</CCardTitle>
+                </CCardHeader>
+                <CCardBody>
+                  <CCardText>With supporting text below as a natural lead-in to additional content.</CCardText>
+                  <CButton href="#">Go somewhere</CButton>
+                </CCardBody>
+              </CCard>
+            </CCol>
+            <CCol sm={2}>
+              <CCard>
+                <CCardHeader>
+                  <CCardTitle>To Do List</CCardTitle>
+                </CCardHeader>
+                <CCardBody>
+                  <CCardText>With supporting text below as a natural lead-in to additional content.</CCardText>
+                  <CButton href="#">Go somewhere</CButton>
+                </CCardBody>
+              </CCard>
+            </CCol>
+            <CCol sm={2}>
+              <CCard>
+                <CCardHeader>
+                  <CCardTitle>Doing</CCardTitle>
+                </CCardHeader>
+                <CCardBody>
+                  <CCardText>With supporting text below as a natural lead-in to additional content.</CCardText>
+                  <CButton href="#">Go somewhere</CButton>
+                </CCardBody>
+              </CCard>
+            </CCol>
+            <CCol sm={2}>
+              <CCard>
+                <CCardHeader>
+                  <CCardTitle>Done</CCardTitle>
+                </CCardHeader>
+                <CCardBody>
+                  <CCardText>With supporting text below as a natural lead-in to additional content.</CCardText>
+                  <CButton href="#">Go somewhere</CButton>
+                </CCardBody>
+              </CCard>
+            </CCol>
+            <CCol sm={2}>
+              <CCard>
+                <CCardHeader>
+                  <CCardTitle>Close</CCardTitle>
+                </CCardHeader>
+                <CCardBody>
+                  <CCardText>With supporting text below as a natural lead-in to additional content.</CCardText>
+                  <CButton href="#">Go somewhere</CButton>
+                </CCardBody>
+              </CCard>
+            </CCol>
+          </CRow>
+        </div>
+
+        {/* Right Menu, create task, create and manage plan */}
+        <div className="col-lg-2" style={{ contentAlign: "center", textAlign: "center" }}>
+          <Drawer open={true} direction="right" enableOverlay={false} className="plan-drawer" style={{ backgroundColor: "black", position: "relative", color: "white" }}>
+            {/* Create task button */}
+            <button className="btn btn-default" id="btnCreateTask" onClick={openCreateTaskModalFun} style={{ marginBottom: "30px", marginTop: "50px", backgroundColor: "#6ED625" }}>
+              Create Task <i className="fa fa-plus" style={{ marginLeft: "10px", fontSize: "20px" }}></i>
+            </button>
+            {/* Create task button */}
+            <button className="btn btn-default" id="btnCreatePlan" onClick={openCreatePlanModalFun} style={{ marginBottom: "50px", marginTop: "1px", backgroundColor: "#5744CD" }}>
+              Create Plan <i className="fa fa-plus" style={{ marginLeft: "10px", fontSize: "20px" }}></i>
+            </button>
+            {/* Create app header */}
+            <h3 style={{ marginBottom: "30px" }}>
+              <u>Plan</u>
+            </h3>
+            {/* Show all plan*/}
+            <ul>
+              {planData.length !== 0
+                ? planData.map(plan => {
+                    return (
+                      <div style={{ paddingBottom: "15px" }}>
+                        <li style={{ backgroundColor: plan.plan_colorcode, cursor: "pointer" }} onClick={openEditPlanModalFun}>
+                          {plan.plan_mvp_name}
+                        </li>
+                      </div>
+                    );
+                  })
+                : null}
+            </ul>
+          </Drawer>
         </div>
       </div>
 
       {/* Modal for create application */}
-      <Modal isOpen={openCreateAppModal} onRequestClose={closeAppModal} style={customStyles}>
+      <Modal isOpen={openCreateAppModal} onRequestClose={closeAppModal} style={customStylesCreateApp}>
         {/* <button onClick={closeModal}>close</button> */}
         <h2 style={{ paddingBottom: "20px" }}>Create Application Form</h2>
         <form onSubmit={handleCreateApplicationSubmit}>
@@ -396,7 +747,7 @@ function Dashboard() {
       </Modal>
 
       {/* Modal for edit application */}
-      <Modal isOpen={openEditAppModal} onRequestClose={closeEditAppModalFun} style={customStyles}>
+      <Modal isOpen={openEditAppModal} onRequestClose={closeEditAppModalFun} style={customStylesEditApp}>
         {/* <button onClick={closeModal}>close</button> */}
         <h2 style={{ paddingBottom: "20px" }}>Editing Application</h2>
         <form onSubmit={handleEditApplicationSubmit}>
@@ -471,6 +822,166 @@ function Dashboard() {
               <h5>App Permit Done</h5>
             </label>
             <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} defaultValue={app_permit_done} className="basic-multi-select" classNamePrefix="select" />
+          </div>
+          <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
+            Update Application
+          </button>
+        </form>
+      </Modal>
+
+      {/* Modal for create plan */}
+      <Modal isOpen={openCreatePlanModal} onRequestClose={closeCreatePlanModalFun} style={customStylesCreatePlan}>
+        <h2 style={{ paddingBottom: "20px" }}>Create Plan Form</h2>
+        <form onSubmit={handleCreatePlanSubmit}>
+          {/* Plan Name */}
+          <div className="form-group">
+            <label htmlFor="plan_name" className="text-muted mb-1">
+              <h5>Plan Name</h5>
+            </label>
+            <input onChange={e => setplan_mvp_name(e.target.value)} id="create_plan_name" className="form-control" type="text" placeholder="Enter plan name" autoComplete="off" required />
+          </div>
+          {/* Plan Start Date */}
+          <div className="form-group">
+            <label htmlFor="plan_startdate" className="text-muted mb-1">
+              <h5>Plan Start Date</h5>
+            </label>
+            <DatePicker className="form-control" type="date" onChange={date => setplan_startdate(date)} selected={plan_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
+          </div>
+          {/* Plan End Date */}
+          <div className="form-group">
+            <label htmlFor="plan_enddate" className="text-muted mb-1">
+              <h5>Plan End Date</h5>
+            </label>
+            <DatePicker className="form-control" type="date" onChange={date => setplan_enddate(date)} selected={plan_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
+          </div>
+          {/* Plan Slider Color */}
+          <div className="form-group">
+            <label htmlFor="plan_colorcode" className="text-muted mb-1">
+              <h5>Plan Color Code</h5>
+            </label>
+            {/* <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" /> */}
+            <SliderPicker onChange={e => setplan_colorcode(e.hex)} color={plan_colorcode} />
+          </div>
+          <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
+            Create Application
+          </button>
+        </form>
+      </Modal>
+
+      {/* Modal for Edit plan */}
+      <Modal isOpen={openEditPlanModal} onRequestClose={closeEditPlanModalFun} style={customStylesEditPlan}>
+        <h2 style={{ paddingBottom: "20px" }}>Edit Plan</h2>
+        <form onSubmit={handleCreatePlanSubmit}>
+          {/* Plan Name */}
+          <div className="form-group">
+            <label htmlFor="plan_name" className="text-muted mb-1">
+              <h5>
+                Plan Name
+                <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{plan_mvp_name}</b>
+              </h5>
+            </label>
+          </div>
+          {/* Plan Start Date */}
+          <div className="form-group">
+            <label htmlFor="plan_startdate" className="text-muted mb-1">
+              <h5>Plan Start Date</h5>
+            </label>
+            <DatePicker className="form-control" type="date" onChange={date => setplan_startdate(date)} selected={plan_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
+          </div>
+          {/* Plan End Date */}
+          <div className="form-group">
+            <label htmlFor="plan_enddate" className="text-muted mb-1">
+              <h5>Plan End Date</h5>
+            </label>
+            <DatePicker className="form-control" type="date" onChange={date => setplan_enddate(date)} selected={plan_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
+          </div>
+          {/* Plan Slider Color */}
+          <div className="form-group">
+            <label htmlFor="plan_colorcode" className="text-muted mb-1">
+              <h5>Plan Color Code</h5>
+            </label>
+            {/* <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" /> */}
+            <SliderPicker onChange={e => setplan_colorcode(e.hex)} color={plan_colorcode} />
+          </div>
+          <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
+            Create Application
+          </button>
+        </form>
+      </Modal>
+
+      {/* Modal for create task */}
+      <Modal isOpen={openCreateTaskModal} onRequestClose={closeCreateTaskModalFun} style={customStylesCreateTask}>
+        <h2 style={{ paddingBottom: "20px" }}>Create Task Form</h2>
+        <form onSubmit={handleCreateTaskSubmit}>
+          {/* Task Name */}
+          <div className="form-group">
+            <label htmlFor="task_name" className="text-muted mb-1">
+              <h5>Task Name</h5>
+            </label>
+            <input onChange={e => settask_name(e.target.value)} id="create_task_name" className="form-control" type="text" placeholder="Enter task name" autoComplete="off" required />
+          </div>
+          {/* Task Description */}
+          <div className="form-group">
+            <label htmlFor="task_description" className="text-muted mb-1">
+              <h5>Task Description</h5>
+            </label>
+            <textarea onChange={e => settask_description(e.target.value)} id="create_task_description" className="form-control" type="text" placeholder="Enter task description (optional)" autoComplete="off"></textarea>
+          </div>
+          {/* App Rnumber */}
+          <div className="form-group">
+            <label htmlFor="app_rnumber" className="text-muted mb-1">
+              <h5>Rnumber</h5>
+            </label>
+            <input onChange={e => setapp_rnumber(e.target.value)} id="create_app_rnumber" className="form-control" type="number" placeholder="Select running number" autoComplete="off" required min="0" onKeyDown={evt => (evt.key === "." && evt.preventDefault()) || (evt.key === "e" && evt.preventDefault()) || (evt.key === "-" && evt.preventDefault())} />
+          </div>
+          {/* App Start Date */}
+          <div className="form-group">
+            <label htmlFor="app_startdate" className="text-muted mb-1">
+              <h5>Start Date</h5>
+            </label>
+            <DatePicker className="form-control" type="date" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
+          </div>
+          {/* App End Date */}
+          <div className="form-group">
+            <label htmlFor="app_enddate" className="text-muted mb-1">
+              <h5>End Date</h5>
+            </label>
+            <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
+          </div>
+          {/* App Permit Create */}
+          <div className="form-group">
+            <label htmlFor="app_permitcreate" className="text-muted mb-1">
+              <h5>App Permit Create</h5>
+            </label>
+            <Select onChange={e => setapp_permit_create(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+          </div>
+          {/* App Permit Open */}
+          <div className="form-group">
+            <label htmlFor="app_permitopen" className="text-muted mb-1">
+              <h5>App Permit Open</h5>
+            </label>
+            <Select onChange={e => setapp_permit_open(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+          </div>
+          {/* App Permit ToDoList */}
+          <div className="form-group">
+            <label htmlFor="app_permittodolist" className="text-muted mb-1">
+              <h5>App Permit ToDoList</h5>
+            </label>
+            <Select onChange={e => setapp_permit_todolist(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+          </div>
+          {/* App Permit Doing */}
+          <div className="form-group">
+            <label htmlFor="app_permitdoing" className="text-muted mb-1">
+              <h5>App Permit Doing</h5>
+            </label>
+            <Select onChange={e => setapp_permit_doing(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+          </div>
+          {/* App Permit Done */}
+          <div className="form-group">
+            <label htmlFor="app_permitdone" className="text-muted mb-1">
+              <h5>App Permit Done</h5>
+            </label>
+            <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
           </div>
           <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
             Create Application
