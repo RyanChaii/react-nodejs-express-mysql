@@ -16,5 +16,7 @@ router.route("/kanban/editapp").post(kanban.editApplication);
 router.route("/kanban/createplan").post(kanban.createPlan);
 // Get plan based on app_acronym
 router.route("/kanban/getplan").get(kanban.getPlan);
+// Update plan
+router.route("/kanban/editplan").post(kanban.editPlan);
 
 module.exports = router;

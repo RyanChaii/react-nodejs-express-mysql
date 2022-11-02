@@ -105,7 +105,7 @@ const customStylesEditPlan = {
     transform: "translate(-50%, -50%)",
     width: "60%",
     height: "90%",
-    backgroundColor: "#C0BCDA"
+    backgroundColor: "#E0E0E7"
   },
   overlay: {
     position: "fixed",
@@ -191,6 +191,9 @@ function Dashboard() {
   const [task_notes, settask_notes] = useState("");
   const [task_plan, settask_plan] = useState("");
   const [task_state, settask_state] = useState("");
+
+  // Application
+  /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
   // Reset the state for application
   function resetAppState() {
@@ -367,6 +370,9 @@ function Dashboard() {
     getPlan(app_acronym);
   }
 
+  // Plan
+  /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+
   // Modal for open create plan
   function openCreatePlanModalFun() {
     setOpenCreatePlanModal(true);
@@ -426,8 +432,11 @@ function Dashboard() {
   }
 
   // Modal for open edit plan
-  function openEditPlanModalFun() {
-    // setplan_mvp_name(plan.plan_mvp_name);
+  function openEditPlanModalFun(plan) {
+    setplan_mvp_name(plan.plan_mvp_name);
+    setplan_startdate(new Date(plan.plan_startdate));
+    setplan_enddate(new Date(plan.plan_enddate));
+    setplan_colorcode(plan.plan_colorcode);
     setOpenEditPlanModal(true);
   }
 
@@ -439,6 +448,37 @@ function Dashboard() {
     setplan_colorcode("");
     setOpenEditPlanModal(false);
   }
+
+  // Edit Plan
+  async function handleEditPlanSubmit(e) {
+    e.preventDefault();
+    try {
+      const response = await Axios.post("http://localhost:3000/kanban/editplan", { plan_mvp_name: plan_mvp_name, plan_startdate: plan_startdate, plan_enddate: plan_enddate, plan_colorcode: plan_colorcode, app_acronym: main_app_acronym });
+      console.log(response.data);
+      if (response.data.message == "Plan updated successfully") {
+        getPlan(main_app_acronym);
+        toast.success(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+      }
+      // Failed to create application
+      if (!response.data.success) {
+        toast.error(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+      }
+    } catch (e) {
+      toast.error("Problem updating plan, please ensure no plan duplication", {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 2000
+      });
+    }
+  }
+
+  // Task
+  /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
   // Modal for open create task
   function openCreateTaskModalFun() {
@@ -481,6 +521,9 @@ function Dashboard() {
       });
     }
   }
+
+  // Authenticate User
+  /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
   // Authenticate user
   async function authuser(token, check_is_admin) {
@@ -581,7 +624,7 @@ function Dashboard() {
                 </CCardHeader>
                 <CCardBody>
                   <CCardText>With supporting text below as a natural lead-in to additional content.</CCardText>
-                  <CButton href="#">Go somewhere</CButton>
+                  <CButton href="#">{">"}</CButton>
                 </CCardBody>
               </CCard>
             </CCol>
@@ -653,7 +696,14 @@ function Dashboard() {
                 ? planData.map(plan => {
                     return (
                       <div style={{ paddingBottom: "15px" }}>
-                        <li style={{ backgroundColor: plan.plan_colorcode, cursor: "pointer" }} onClick={openEditPlanModalFun}>
+                        <li
+                          style={{ backgroundColor: plan.plan_colorcode, cursor: "pointer" }}
+                          onClick={e => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            openEditPlanModalFun(plan);
+                          }}
+                        >
                           {plan.plan_mvp_name}
                         </li>
                       </div>
@@ -871,7 +921,7 @@ function Dashboard() {
       {/* Modal for Edit plan */}
       <Modal isOpen={openEditPlanModal} onRequestClose={closeEditPlanModalFun} style={customStylesEditPlan}>
         <h2 style={{ paddingBottom: "20px" }}>Edit Plan</h2>
-        <form onSubmit={handleCreatePlanSubmit}>
+        <form onSubmit={handleEditPlanSubmit}>
           {/* Plan Name */}
           <div className="form-group">
             <label htmlFor="plan_name" className="text-muted mb-1">
@@ -900,11 +950,10 @@ function Dashboard() {
             <label htmlFor="plan_colorcode" className="text-muted mb-1">
               <h5>Plan Color Code</h5>
             </label>
-            {/* <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" /> */}
             <SliderPicker onChange={e => setplan_colorcode(e.hex)} color={plan_colorcode} />
           </div>
           <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
-            Create Application
+            Edit Plan
           </button>
         </form>
       </Modal>
@@ -993,17 +1042,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
-
-// console.log(app_acronym);
-// console.log(app_description);
-// console.log(app_rnumber);
-// console.log(app_startdate);
-// console.log(app_enddate);
-// console.log(app_permit_create.value);
-// console.log(app_permit_open.value);
-// console.log(app_permit_todolist.value);
-// console.log(app_permit_doing.value);
-// console.log(app_permit_done.value);
-{
-  /* <i className="fa fa-gear" style={{ marginLeft: "10px", fontSize: "20px", position: "absolute", left: "75%" }}></i> */
-}

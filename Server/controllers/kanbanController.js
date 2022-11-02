@@ -223,4 +223,45 @@ const getPlan = (req, res) => {
   });
 };
 
-module.exports = { getAllApplication, createApplication, editApplication, createPlan, getPlan };
+// Edit plan
+const editPlan = async (req, res, next) => {
+  // Retrieving user input
+  var mvp_name_input = req.body.plan_mvp_name;
+  var startdate_input = req.body.plan_startdate.slice(0, 10);
+  var enddate_input = req.body.plan_enddate.slice(0, 10);
+  var acronym_input = req.body.app_acronym;
+  var colorcode_input = req.body.plan_colorcode;
+
+  let sql = `UPDATE plan 
+  SET plan_startdate = '${startdate_input}', plan_enddate = '${enddate_input}',
+  plan_colorcode = '${colorcode_input}'
+  WHERE plan_mvp_name = '${mvp_name_input}' AND plan_app_acronym = '${acronym_input}'`;
+
+  db.query(sql, (err, results) => {
+    try {
+      // SQL error messages
+      if (err) {
+        console.log("Error");
+        console.log(err);
+        return res.status(200).send({
+          success: false,
+          message: "Error updating plan, please try again later"
+        });
+      }
+      // Successful messages
+      else {
+        return res.status(200).send({
+          success: true,
+          message: "Plan updated successfully"
+        });
+      }
+    } catch (e) {
+      return res.status(200).send({
+        success: false,
+        message: "Error updating plan, try again later"
+      });
+    }
+  });
+};
+
+module.exports = { getAllApplication, createApplication, editApplication, createPlan, getPlan, editPlan };
