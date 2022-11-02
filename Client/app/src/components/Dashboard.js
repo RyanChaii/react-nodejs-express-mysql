@@ -191,6 +191,8 @@ function Dashboard() {
   const [task_notes, settask_notes] = useState("");
   const [task_plan, settask_plan] = useState("");
   const [task_state, settask_state] = useState("");
+  // Show plan data during task creation
+  const [availablePlan, setAvailablePlan] = useState("");
 
   // Application
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -422,6 +424,12 @@ function Dashboard() {
       // console.log(response.data.message.length);
       if (response.data.message.length > 0) {
         setPlanData(response.data.message);
+
+        // Convert plan data to value and label format (for select ui)
+        var planOptions = response.data.message.map(plan => {
+          return { value: plan.plan_mvp_name, label: plan.plan_mvp_name };
+        });
+        setAvailablePlan(planOptions);
       }
     } catch (e) {
       toast.error("Error retrieving plan, please try again later", {
@@ -494,20 +502,17 @@ function Dashboard() {
   async function handleCreateTaskSubmit(e) {
     e.preventDefault();
     try {
-      const response = await Axios.post("http://localhost:3000/kanban/createtask", { app_acronym: app_acronym, app_description: app_description, app_rnumber: app_rnumber, app_startdate: app_startdate, app_enddate: app_enddate, app_permit_create: app_permit_create.value, app_permit_open: app_permit_open.value, app_permit_todolist: app_permit_todolist.value, app_permit_doing: app_permit_doing.value, app_permit_done: app_permit_done.value });
+      const response = await Axios.post("http://localhost:3000/kanban/createtask", { task_name: task_name, task_description: task_description, task_notes: task_notes, task_plan: task_plan.value, task_app_acronym: main_app_acronym, task_creator: username, task_owner: username });
       console.log(response.data);
 
       if (response.data.message == "Task created successfully") {
+        console.log(response);
         toast.success(response.data.message, {
           position: toast.POSITION.TOP_CENTER,
           autoClose: 2000
         });
-        // Remove create app state
-        resetAppState();
-        closeAppModal();
-        getAllApplication();
       }
-      // Failed to create application
+      // Failed to create task
       if (!response.data.success) {
         toast.error(response.data.message, {
           position: toast.POSITION.TOP_CENTER,
@@ -515,7 +520,7 @@ function Dashboard() {
         });
       }
     } catch (e) {
-      toast.error("Problem creating app, please ensure no app duplication", {
+      toast.error("Problem creating task, please ensure all field are filled", {
         position: toast.POSITION.TOP_CENTER,
         autoClose: 2000
       });
@@ -976,64 +981,22 @@ function Dashboard() {
             </label>
             <textarea onChange={e => settask_description(e.target.value)} id="create_task_description" className="form-control" type="text" placeholder="Enter task description (optional)" autoComplete="off"></textarea>
           </div>
-          {/* App Rnumber */}
+          {/* Task Notes */}
           <div className="form-group">
-            <label htmlFor="app_rnumber" className="text-muted mb-1">
-              <h5>Rnumber</h5>
+            <label htmlFor="task_notes" className="text-muted mb-1">
+              <h5>Task Notes</h5>
             </label>
-            <input onChange={e => setapp_rnumber(e.target.value)} id="create_app_rnumber" className="form-control" type="number" placeholder="Select running number" autoComplete="off" required min="0" onKeyDown={evt => (evt.key === "." && evt.preventDefault()) || (evt.key === "e" && evt.preventDefault()) || (evt.key === "-" && evt.preventDefault())} />
+            <textarea onChange={e => settask_notes(e.target.value)} id="create_task_notes" className="form-control" type="text" placeholder="Enter task notes (optional)" autoComplete="off"></textarea>
           </div>
-          {/* App Start Date */}
+          {/* Task Plan */}
           <div className="form-group">
-            <label htmlFor="app_startdate" className="text-muted mb-1">
-              <h5>Start Date</h5>
+            <label htmlFor="task_plan" className="text-muted mb-1">
+              <h5>Task Plan</h5>
             </label>
-            <DatePicker className="form-control" type="date" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
-          </div>
-          {/* App End Date */}
-          <div className="form-group">
-            <label htmlFor="app_enddate" className="text-muted mb-1">
-              <h5>End Date</h5>
-            </label>
-            <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
-          </div>
-          {/* App Permit Create */}
-          <div className="form-group">
-            <label htmlFor="app_permitcreate" className="text-muted mb-1">
-              <h5>App Permit Create</h5>
-            </label>
-            <Select onChange={e => setapp_permit_create(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
-          </div>
-          {/* App Permit Open */}
-          <div className="form-group">
-            <label htmlFor="app_permitopen" className="text-muted mb-1">
-              <h5>App Permit Open</h5>
-            </label>
-            <Select onChange={e => setapp_permit_open(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
-          </div>
-          {/* App Permit ToDoList */}
-          <div className="form-group">
-            <label htmlFor="app_permittodolist" className="text-muted mb-1">
-              <h5>App Permit ToDoList</h5>
-            </label>
-            <Select onChange={e => setapp_permit_todolist(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
-          </div>
-          {/* App Permit Doing */}
-          <div className="form-group">
-            <label htmlFor="app_permitdoing" className="text-muted mb-1">
-              <h5>App Permit Doing</h5>
-            </label>
-            <Select onChange={e => setapp_permit_doing(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
-          </div>
-          {/* App Permit Done */}
-          <div className="form-group">
-            <label htmlFor="app_permitdone" className="text-muted mb-1">
-              <h5>App Permit Done</h5>
-            </label>
-            <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} className="basic-multi-select" classNamePrefix="select" />
           </div>
           <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
-            Create Application
+            Create Task
           </button>
         </form>
       </Modal>

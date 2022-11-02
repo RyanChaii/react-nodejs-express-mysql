@@ -19,4 +19,7 @@ router.route("/kanban/getplan").get(kanban.getPlan);
 // Update plan
 router.route("/kanban/editplan").post(kanban.editPlan);
 
+// Create Task
+router.route("/kanban/createtask").post(kanban.createTask);
+
 module.exports = router;

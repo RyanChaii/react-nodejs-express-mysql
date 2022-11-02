@@ -1,10 +1,13 @@
 // Created library
 const db = require("../config/database");
 const { Checkgroup } = require("../utility/checkGroup");
+const { generateAudit } = require("../utility/generateAudit");
+const { retrieveRnumber, updateRnumber } = require("../utility/runningNumber");
 
 // Required library
 const e = require("express");
 const { request } = require("express");
+const { query } = require("../config/database");
 
 // Retrieve all user
 const getAllApplication = (req, res) => {
@@ -62,9 +65,9 @@ const createApplication = async (req, res, next) => {
 
   let sql = `INSERT into application 
   (app_acronym, app_description, app_rnumber, app_startdate, app_enddate, app_permit_create, app_permit_open, app_permit_todolist, app_permit_doing, app_permit_done)  
-  VALUES ('${acronym_input}','${description_input}', '${rnumber_input}', '${startdate_input}', '${enddate_input}', '${permitcreate_input}', '${permitopen_input}', '${permittodolist_input}', '${permitdoing_input}', '${permitdone_input}')`;
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-  db.query(sql, (err, results) => {
+  db.query(sql, [acronym_input, description_input, rnumber_input, startdate_input, enddate_input, permitcreate_input, permitopen_input, permittodolist_input, permitdoing_input, permitdone_input], (err, results) => {
     try {
       // SQL error messages
       if (err) {
@@ -111,14 +114,14 @@ const editApplication = async (req, res, next) => {
   var permitdoing_input = req.body.app_permit_doing;
   var permitdone_input = req.body.app_permit_done;
 
-  let sql = `UPDATE application 
-  SET app_description = '${description_input}', app_startdate = '${startdate_input}',
-  app_enddate = '${enddate_input}', app_permit_create = '${permitcreate_input}', 
-  app_permit_open = '${permitopen_input}', app_permit_todolist = '${permittodolist_input}', 
-  app_permit_doing = '${permitdoing_input}', app_permit_done = '${permitdone_input}'  
-  WHERE app_acronym= '${acronym_input}'`;
+  let sql = `UPDATE application
+  SET app_description = ?, app_startdate = ?,
+  app_enddate = ?, app_permit_create = ?,
+  app_permit_open = ?, app_permit_todolist = ?,
+  app_permit_doing = ?, app_permit_done = ?
+  WHERE app_acronym= ?`;
 
-  db.query(sql, (err, results) => {
+  db.query(sql, [description_input, startdate_input, enddate_input, permitcreate_input, permitopen_input, permittodolist_input, permitdoing_input, permitdone_input, acronym_input], (err, results) => {
     try {
       // SQL error messages
       if (err) {
@@ -264,4 +267,109 @@ const editPlan = async (req, res, next) => {
   });
 };
 
-module.exports = { getAllApplication, createApplication, editApplication, createPlan, getPlan, editPlan };
+// Create task
+const createTask = async (req, res, next) => {
+  // Retrieving user input
+  var task_name_input = req.body.task_name;
+  var task_description_input = req.body.task_description;
+  var task_notes_input = req.body.task_notes;
+  var task_plan_input = req.body.task_plan;
+  var task_app_acronym_input = req.body.task_app_acronym;
+  var task_creator_input = req.body.task_creator;
+  var task_owners_input = req.body.task_owner;
+
+  // Setting date
+  // var createdDate = new Date(Date.now()).toLocaleString().split(",")[0];
+  var createdDate = new Date(Date.now()).toISOString().slice(0, 10);
+  console.log(createdDate);
+  // Retrieving rnumber
+  var rnumber = (await retrieveRnumber(task_app_acronym_input)) + 1;
+
+  // Generating task_id
+  var task_id = String(task_app_acronym_input) + "_" + String(rnumber);
+
+  // Check for only space empty string
+  if (task_name_input.trim().length === 0) {
+    return res.status(200).send({
+      success: false,
+      message: "Pure spaces are not allowed for task name"
+    });
+  }
+  // Generating audit trail
+  var auditMsg = generateAudit(task_creator_input, "open", "Task are created and added into open state");
+  // If user added notes
+  if (task_notes_input.length > 1 || task_notes_input.trim().length !== 0) {
+    auditMsg = auditMsg + "\n" + generateAudit(task_creator_input, "open", task_notes_input);
+  }
+
+  // Declare state
+  var task_state = "open";
+
+  let sql = `INSERT into task
+  (task_id, task_name, task_description, task_notes, task_plan, task_app_acronym, task_state, task_creator, task_owner, task_createdate)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+  db.query(sql, [task_id, task_name_input, task_description_input, auditMsg, task_plan_input, task_app_acronym_input, task_state, task_creator_input, task_owners_input, createdDate], async (err, results) => {
+    if (err) {
+      console.log(err);
+    } else {
+      if (updateRnumber(task_app_acronym_input, rnumber) === true) {
+        return res.status(200).send({
+          success: true,
+          message: "Task created successfully"
+        });
+      }
+    }
+  });
+};
+module.exports = { getAllApplication, createApplication, editApplication, createPlan, getPlan, editPlan, createTask };
+
+// console.log("here");
+// console.log(rnumber);
+// Regex to validate user input
+// const mvpnamePattern = /^[A-Za-z0-9_.]+$/;
+
+// // Plan MVP validation
+// if (!mvp_name_input.match(mvpnamePattern) || mvp_name_input.length < 3) {
+//   return res.status(200).send({
+//     success: false,
+//     message: "Plan name require minimum at least 3 characters, no space and special character. But allow dot and underscore"
+//   });
+// }
+
+// let sql = `INSERT into plan
+// (plan_mvp_name, plan_startdate, plan_enddate, plan_app_acronym, plan_colorcode)
+// VALUES ('${mvp_name_input}','${startdate_input}', '${enddate_input}', '${acronym_input}', '${colorcode_input}')`;
+
+// db.query(sql, (err, results) => {
+//   try {
+//     // SQL error messages
+//     if (err) {
+//       console.log("Error");
+//       // console.log(err);
+//       return res.status(200).send({
+//         success: false,
+//         message: "Error creating plan, ensure no duplicate plan name in the same application"
+//       });
+//     }
+//     // Successful messages
+//     else {
+//       return res.status(200).send({
+//         success: true,
+//         message: "Plan created successfully"
+//       });
+//     }
+//   } catch (e) {
+//     if (e.code == "ER_DUP_ENTRY") {
+//       return res.status(200).send({
+//         success: false,
+//         message: "No duplicate plan in the same application allowed"
+//       });
+//     } else {
+//       return res.status(200).send({
+//         success: false,
+//         message: "Error creating plan, try again later"
+//       });
+//     }
+//   }
+// });
