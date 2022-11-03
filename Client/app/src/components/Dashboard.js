@@ -16,7 +16,7 @@ import Select from "react-select";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 // import icon
-import { BsFillGearFill } from "react-icons/bs";
+import { BsFillGearFill, BsCaretLeftFill, BsCaretRightFill } from "react-icons/bs";
 // import card for kanban
 import { CRow, CCol, CCard, CCardBody, CCardTitle, CCardText, CButton, CCardHeader } from "@coreui/react";
 // import color picker
@@ -186,13 +186,23 @@ function Dashboard() {
   // Create task Modal
   const [openCreateTaskModal, setOpenCreateTaskModal] = useState(false);
   // Create task state
+  const [task_id, settask_id] = useState("");
   const [task_name, settask_name] = useState("");
   const [task_description, settask_description] = useState("");
   const [task_notes, settask_notes] = useState("");
+  const [task_added_notes, settask_added_notes] = useState("");
   const [task_plan, settask_plan] = useState("");
   const [task_state, settask_state] = useState("");
+  const [task_creator, settask_creator] = useState("");
+  const [task_owner, settask_owner] = useState("");
+  const [task_createdate, settask_createdate] = useState("");
+
   // Show plan data during task creation
   const [availablePlan, setAvailablePlan] = useState("");
+  // Retrieved task state
+  const [taskData, setTaskData] = useState("");
+  // Create task Modal
+  const [openEditTaskModal, setOpenEditTaskModal] = useState(false);
 
   // Application
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -488,6 +498,19 @@ function Dashboard() {
   // Task
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
+  // Reset state for task
+  function resetTaskState() {
+    settask_id("");
+    settask_name("");
+    settask_description("");
+    settask_notes("");
+    settask_plan("");
+    settask_state("");
+    settask_createdate("");
+    settask_owner("");
+    settask_createdate("");
+  }
+
   // Modal for open create task
   function openCreateTaskModalFun() {
     setOpenCreateTaskModal(true);
@@ -502,15 +525,16 @@ function Dashboard() {
   async function handleCreateTaskSubmit(e) {
     e.preventDefault();
     try {
-      const response = await Axios.post("http://localhost:3000/kanban/createtask", { task_name: task_name, task_description: task_description, task_notes: task_notes, task_plan: task_plan.value, task_app_acronym: main_app_acronym, task_creator: username, task_owner: username });
+      const response = await Axios.post("http://localhost:3000/kanban/createtask", { task_name: task_name, task_description: task_description, task_notes: task_notes, task_app_acronym: main_app_acronym, task_creator: username, task_owner: username });
       console.log(response.data);
-
-      if (response.data.message == "Task created successfully") {
+      // Task creation successful
+      if (response.data.success) {
         console.log(response);
         toast.success(response.data.message, {
           position: toast.POSITION.TOP_CENTER,
           autoClose: 2000
         });
+        getTask(main_app_acronym);
       }
       // Failed to create task
       if (!response.data.success) {
@@ -527,6 +551,90 @@ function Dashboard() {
     }
   }
 
+  // Get Task
+  async function getTask(app_acronym) {
+    try {
+      // Reset state first
+      // resetTaskState();
+      setTaskData("");
+      const response = await Axios.get("http://localhost:3000/kanban/gettask", { params: { app_acronym: app_acronym } });
+      var taskMessage = response.data.message;
+      if (response.data.message.length > 0) {
+        setTaskData(taskMessage);
+        for (var i = 0; i < taskMessage.length; i++) {
+          console.log(taskMessage[i].task_id);
+          if (taskMessage[i].task_id === task_id) {
+            settask_notes(taskMessage[i].task_notes);
+          }
+        }
+      }
+    } catch (e) {
+      toast.error("Error retrieving plan, please try again later", {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 2000
+      });
+    }
+  }
+
+  // Modal for open edit task
+  function openEditTaskModalFun(task) {
+    settask_id(task.task_id);
+    settask_name(task.task_name);
+    settask_description(task.task_description);
+    // settask_added_notes(task.task_notes);
+    settask_notes(task.task_notes);
+    settask_plan(() => {
+      return { value: task.task_plan, label: task.task_plan };
+    });
+    settask_state(task.task_state);
+    settask_creator(task.task_creator);
+    settask_owner(task.task_owner);
+    settask_createdate(task.task_createdate);
+    setOpenEditTaskModal(true);
+  }
+
+  function afterOpenEditTaskModalFun() {
+    var noteTextArea = document.getElementById("show_task_notes");
+    noteTextArea.scrollTop = noteTextArea.scrollHeight;
+  }
+
+  // Modal for close create task
+  function closeEditTaskModalFun() {
+    resetTaskState();
+    setOpenEditTaskModal(false);
+  }
+
+  // Handle edit task
+  async function handleUpdateTaskSubmit(e) {
+    e.preventDefault();
+    // e.stopPropagation();
+    try {
+      const response = await Axios.post("http://localhost:3000/kanban/edittask", { task_id: task_id, task_description: task_description, task_added_notes: task_added_notes, task_notes: task_notes, task_plan: task_plan, username: username, task_state: task_state });
+      // Task update successful
+      if (response.data.success) {
+        console.log(response);
+        toast.success(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+        getTask(main_app_acronym);
+        // settask_notes(task_notes);
+      }
+      // Failed to create task
+      if (!response.data.success) {
+        toast.error(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+      }
+    } catch (e) {
+      console.log(e);
+      toast.error("Problem updating task, please ensure all field are filled", {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 2000
+      });
+    }
+  }
   // Authenticate User
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
@@ -575,7 +683,7 @@ function Dashboard() {
       <div className="row">
         {/* Create and manage application */}
         <div className="col-2" style={{ contentAlign: "center", textAlign: "center" }}>
-          <Drawer open={true} direction="left" enableOverlay={false} className="application-drawer" style={{ backgroundColor: "black", position: "relative", color: "white" }}>
+          <Drawer open={true} direction="left" enableOverlay={false} className="application-drawer" style={{ backgroundColor: "black", position: "relative", color: "white", minHeight: "100vh", height: "100%", width: "100%" }}>
             {/* Create app button */}
             <button className="btn btn-info" id="btnCreateApp" onClick={openAppModal} style={{ marginBottom: "50px", marginTop: "50px" }}>
               Create Application <i className="fa fa-plus" style={{ marginLeft: "10px", fontSize: "20px" }}></i>
@@ -597,6 +705,7 @@ function Dashboard() {
                           e.preventDefault();
                           set_main_app_acronym(app.app_acronym);
                           handleApplicationOnClick(app.app_acronym);
+                          getTask(app.app_acronym);
                         }}
                       >
                         {app.app_acronym}
@@ -618,22 +727,67 @@ function Dashboard() {
         </div>
 
         {/* Kan Ban board */}
-        <div className="col-lg-8" style={{ paddingLeft: "100px" }}>
+        <div className="col-lg-8" style={{ paddingLeft: "20px" }}>
           <h1>Welcome to TMS!</h1>
           <h2>Selected Application: {main_app_acronym}</h2>
           <CRow>
-            <CCol sm={2}>
+            <CCol sm={2} style={{ width: "200px" }}>
               <CCard>
                 <CCardHeader>
-                  <CCardTitle>Open</CCardTitle>
+                  <CCardTitle>
+                    <h5>
+                      <b>Open</b>
+                    </h5>
+                  </CCardTitle>
                 </CCardHeader>
                 <CCardBody>
-                  <CCardText>With supporting text below as a natural lead-in to additional content.</CCardText>
-                  <CButton href="#">{">"}</CButton>
+                  {taskData.length !== 0
+                    ? taskData.map(task => {
+                        if (task.task_state === "open") {
+                          return (
+                            <CCard>
+                              <CCardHeader>
+                                <CCardTitle>
+                                  <h6>{task.task_name}</h6>
+                                </CCardTitle>
+                              </CCardHeader>
+                              <CCardBody>
+                                <CRow>
+                                  <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
+                                    {" "}
+                                    <BsCaretLeftFill style={{ fontSize: "25px", cursor: "pointer" }} />
+                                  </CCol>
+                                  <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
+                                    {" "}
+                                    <BsCaretRightFill style={{ fontSize: "25px", cursor: "pointer" }} />
+                                  </CCol>
+                                </CRow>
+                                <CRow>ID: {task.task_id}</CRow>
+                                <CRow>Owner: {task.task_owner}</CRow>
+                                <CRow>
+                                  <CButton
+                                    className="btn btn-success btn-block"
+                                    href="#"
+                                    style={{ marginTop: "10px" }}
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      openEditTaskModalFun(task);
+                                    }}
+                                  >
+                                    Edit
+                                  </CButton>
+                                </CRow>
+                              </CCardBody>
+                            </CCard>
+                          );
+                        }
+                      })
+                    : null}
                 </CCardBody>
               </CCard>
             </CCol>
-            <CCol sm={2}>
+            <CCol sm={2} style={{ width: "200px" }}>
               <CCard>
                 <CCardHeader>
                   <CCardTitle>To Do List</CCardTitle>
@@ -644,7 +798,7 @@ function Dashboard() {
                 </CCardBody>
               </CCard>
             </CCol>
-            <CCol sm={2}>
+            <CCol sm={2} style={{ width: "200px" }}>
               <CCard>
                 <CCardHeader>
                   <CCardTitle>Doing</CCardTitle>
@@ -655,7 +809,7 @@ function Dashboard() {
                 </CCardBody>
               </CCard>
             </CCol>
-            <CCol sm={2}>
+            <CCol sm={2} style={{ width: "200px" }}>
               <CCard>
                 <CCardHeader>
                   <CCardTitle>Done</CCardTitle>
@@ -666,7 +820,7 @@ function Dashboard() {
                 </CCardBody>
               </CCard>
             </CCol>
-            <CCol sm={2}>
+            <CCol sm={2} style={{ width: "200px" }}>
               <CCard>
                 <CCardHeader>
                   <CCardTitle>Close</CCardTitle>
@@ -682,15 +836,22 @@ function Dashboard() {
 
         {/* Right Menu, create task, create and manage plan */}
         <div className="col-lg-2" style={{ contentAlign: "center", textAlign: "center" }}>
-          <Drawer open={true} direction="right" enableOverlay={false} className="plan-drawer" style={{ backgroundColor: "black", position: "relative", color: "white" }}>
-            {/* Create task button */}
-            <button className="btn btn-default" id="btnCreateTask" onClick={openCreateTaskModalFun} style={{ marginBottom: "30px", marginTop: "50px", backgroundColor: "#6ED625" }}>
-              Create Task <i className="fa fa-plus" style={{ marginLeft: "10px", fontSize: "20px" }}></i>
-            </button>
-            {/* Create task button */}
-            <button className="btn btn-default" id="btnCreatePlan" onClick={openCreatePlanModalFun} style={{ marginBottom: "50px", marginTop: "1px", backgroundColor: "#5744CD" }}>
-              Create Plan <i className="fa fa-plus" style={{ marginLeft: "10px", fontSize: "20px" }}></i>
-            </button>
+          <Drawer open={true} direction="right" enableOverlay={false} className="plan-drawer" style={{ backgroundColor: "black", position: "relative", color: "white", minHeight: "100vh", height: "100%", width: "100%" }}>
+            <div className="row">
+              <div className="col-12">
+                {/* Create task button */}
+                <button className="btn btn-default" id="btnCreateTask" onClick={openCreateTaskModalFun} style={{ marginBottom: "30px", marginTop: "50px", backgroundColor: "#6ED625" }}>
+                  Create Task <i className="fa fa-plus" style={{ marginLeft: "10px", fontSize: "20px" }}></i>
+                </button>
+              </div>
+              <div className="col-12">
+                {/* Create task button */}
+                <button className="btn btn-default" id="btnCreatePlan" onClick={openCreatePlanModalFun} style={{ marginBottom: "50px", marginTop: "1px", backgroundColor: "#5744CD" }}>
+                  Create Plan <i className="fa fa-plus" style={{ marginLeft: "10px", fontSize: "20px" }}></i>
+                </button>
+              </div>
+            </div>
+
             {/* Create app header */}
             <h3 style={{ marginBottom: "30px" }}>
               <u>Plan</u>
@@ -988,15 +1149,73 @@ function Dashboard() {
             </label>
             <textarea onChange={e => settask_notes(e.target.value)} id="create_task_notes" className="form-control" type="text" placeholder="Enter task notes (optional)" autoComplete="off"></textarea>
           </div>
-          {/* Task Plan */}
-          <div className="form-group">
-            <label htmlFor="task_plan" className="text-muted mb-1">
-              <h5>Task Plan</h5>
-            </label>
-            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} className="basic-multi-select" classNamePrefix="select" />
-          </div>
+
           <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
             Create Task
+          </button>
+        </form>
+      </Modal>
+
+      {/* Modal for edit task */}
+      <Modal isOpen={openEditTaskModal} onRequestClose={closeEditTaskModalFun} onAfterOpen={afterOpenEditTaskModalFun} style={customStylesCreateTask}>
+        <h2 style={{ paddingBottom: "20px" }}>{task_name}</h2>
+        <form onSubmit={handleUpdateTaskSubmit}>
+          {/* Task ID */}
+          <div className="form-group">
+            <label htmlFor="task_id" className="text-muted mb-1">
+              <h5>
+                Task ID <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_id}</b>
+              </h5>
+            </label>
+          </div>
+          {/* Task Description */}
+          <div className="form-group">
+            <label htmlFor="task_description" className="text-muted mb-1">
+              <h5>Task Description</h5>
+            </label>
+            <textarea onChange={e => settask_description(e.target.value)} id="edit_task_description" className="form-control" type="text" placeholder="Enter task description (optional)" autoComplete="off" defaultValue={task_description}></textarea>
+          </div>
+          {/* Task Notes */}
+          <div className="form-group">
+            <label htmlFor="task_notes" className="text-muted mb-1">
+              <h5>Task Notes</h5>
+            </label>
+            <textarea id="show_task_notes" className="form-control" type="text" placeholder="Enter task notes (optional)" autoComplete="off" value={task_notes} style={{ minHeight: "150px", marginBottom: "10px" }} disabled></textarea>
+            <textarea onChange={e => settask_added_notes(e.target.value)} id="edit_task_added_notes" className="form-control" type="text" placeholder="Enter task notes (optional)" autoComplete="off"></textarea>
+          </div>
+          {/* Task Plan */}
+          <div className="form-group">
+            <label htmlFor="edit_task_plan" className="text-muted mb-1">
+              <h5>Task Plan</h5>
+            </label>
+            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} defaultValue={task_plan} className="basic-multi-select" classNamePrefix="select" />
+          </div>
+          {/* Task Creator */}
+          <div className="form-group">
+            <label htmlFor="edit_task_creator" className="text-muted mb-1">
+              <h5>
+                Creator <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_creator}</b>
+              </h5>
+            </label>
+          </div>
+          {/* Task Owner */}
+          <div className="form-group">
+            <label htmlFor="edit_task_owner" className="text-muted mb-1">
+              <h5>
+                Owner <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_owner}</b>
+              </h5>
+            </label>
+          </div>
+          {/* Task Create Date */}
+          <div className="form-group">
+            <label htmlFor="edit_task_owner" className="text-muted mb-1">
+              <h5>
+                Created Date <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_createdate.slice(0, 10)}</b>
+              </h5>
+            </label>
+          </div>
+          <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
+            Update Task
           </button>
         </form>
       </Modal>
@@ -1005,3 +1224,15 @@ function Dashboard() {
 }
 
 export default Dashboard;
+
+{
+  /* Task Plan */
+}
+{
+  /* <div className="form-group">
+            <label htmlFor="task_plan" className="text-muted mb-1">
+              <h5>Task Plan</h5>
+            </label>
+            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} className="basic-multi-select" classNamePrefix="select" />
+          </div> */
+}

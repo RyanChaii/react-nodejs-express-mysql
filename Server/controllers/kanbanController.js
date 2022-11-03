@@ -279,9 +279,7 @@ const createTask = async (req, res, next) => {
   var task_owners_input = req.body.task_owner;
 
   // Setting date
-  // var createdDate = new Date(Date.now()).toLocaleString().split(",")[0];
   var createdDate = new Date(Date.now()).toISOString().slice(0, 10);
-  console.log(createdDate);
   // Retrieving rnumber
   var rnumber = (await retrieveRnumber(task_app_acronym_input)) + 1;
 
@@ -312,17 +310,105 @@ const createTask = async (req, res, next) => {
   db.query(sql, [task_id, task_name_input, task_description_input, auditMsg, task_plan_input, task_app_acronym_input, task_state, task_creator_input, task_owners_input, createdDate], async (err, results) => {
     if (err) {
       console.log(err);
+      return res.status(200).send({
+        success: false,
+        message: "Failed to create task, please contact admin"
+      });
     } else {
-      if (updateRnumber(task_app_acronym_input, rnumber) === true) {
+      if ((await updateRnumber(task_app_acronym_input, rnumber)) === true) {
         return res.status(200).send({
           success: true,
           message: "Task created successfully"
+        });
+      } else {
+        return res.status(200).send({
+          success: false,
+          message: "Failed to create task, please contact admin"
         });
       }
     }
   });
 };
-module.exports = { getAllApplication, createApplication, editApplication, createPlan, getPlan, editPlan, createTask };
+
+// Retrieve task based on acronym
+const getTask = (req, res) => {
+  let sql = `SELECT * FROM task WHERE task_app_acronym = ?`;
+
+  db.query(sql, [req.query.app_acronym], (err, results) => {
+    if (err) {
+      console.log("Error retrieving plan");
+      res.status(200).send({
+        success: false,
+        message: "Error retrieving task"
+      });
+    } else {
+      res.status(200).send({
+        success: true,
+        message: results
+      });
+    }
+  });
+};
+
+// Update task
+const editTask = async (req, res, next) => {
+  // Retrieving user input
+  var task_id_input = req.body.task_id;
+  var task_description_input = req.body.task_description;
+  var task_added_notes_input = req.body.task_added_notes;
+  var task_notes_input = req.body.task_notes;
+  var task_plan_input = req.body.task_plan;
+  var username_input = req.body.username;
+  var task_state_input = req.body.task_state;
+
+  var selectedPlan = "";
+  // Prevent crashing if no plan was selected
+  if (task_plan_input !== null) {
+    selectedPlan = task_plan_input.value;
+  }
+
+  // Create audit trail for updating of user
+  var auditMsg = generateAudit(username_input, task_state_input, "Task have been updated");
+
+  // If user added notes
+  if (task_added_notes_input.length > 1 || task_added_notes_input.trim().length !== 0) {
+    auditMsg = auditMsg + "\n" + generateAudit(username_input, task_state_input, task_added_notes_input);
+  }
+
+  auditMsg = task_notes_input + auditMsg;
+
+  let sql = `UPDATE task 
+  SET task_description = ?, task_notes = ?,
+  task_plan = ?, task_owner = ?
+  WHERE task_id = ?`;
+
+  db.query(sql, [task_description_input, auditMsg, selectedPlan, username_input, task_id_input], (err, results) => {
+    try {
+      // SQL error messages
+      if (err) {
+        console.log(err);
+        return res.status(200).send({
+          success: false,
+          message: "Error updating task, please try again later"
+        });
+      }
+      // Successful messages
+      else {
+        return res.status(200).send({
+          success: true,
+          message: "Task updated successfully"
+        });
+      }
+    } catch (e) {
+      return res.status(200).send({
+        success: false,
+        message: "Error updating task, try again later"
+      });
+    }
+  });
+};
+
+module.exports = { getAllApplication, createApplication, editApplication, createPlan, getPlan, editPlan, createTask, getTask, editTask };
 
 // console.log("here");
 // console.log(rnumber);
