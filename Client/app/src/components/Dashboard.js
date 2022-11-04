@@ -171,7 +171,16 @@ function Dashboard() {
   const [openEditAppModal, setOpenEditAppModal] = useState(false);
   // Main application state (used for task & plan) state
   const [main_app_acronym, set_main_app_acronym] = useState("None");
-  const [main_app_rnumber, set_main_app_rnumber] = useState("");
+  const [main_app_permit_create, set_main_app_permit_create] = useState("");
+  const [main_app_permit_open, set_main_app_permit_open] = useState("");
+  const [main_app_permit_todolist, set_main_app_permit_todolist] = useState("");
+  const [main_app_permit_doing, set_main_app_permit_doing] = useState("");
+  const [main_app_permit_done, set_main_app_permit_done] = useState("");
+  const [main_app_permit_create_bool, set_main_app_permit_create_bool] = useState(false);
+  const [main_app_permit_open_bool, set_main_app_permit_open_bool] = useState(false);
+  const [main_app_permit_todolist_bool, set_main_app_permit_todolist_bool] = useState(false);
+  const [main_app_permit_doing_bool, set_main_app_permit_doing_bool] = useState(false);
+  const [main_app_permit_done_bool, set_main_app_permit_done_bool] = useState(false);
   // Create plan Modal
   const [openCreatePlanModal, setOpenCreatePlanModal] = useState(false);
   // Create Plan State
@@ -231,7 +240,6 @@ function Dashboard() {
     });
 
     setOpenCreateAppModal(true);
-    console.log(groupData);
   }
 
   // Modal for close create application
@@ -248,7 +256,6 @@ function Dashboard() {
   async function getAllGroupData() {
     try {
       const response = await Axios.get("http://localhost:3000/usermanagement/getallgroup");
-      // console.log(response.data.message);
       let groupd = response.data.message;
       // Convert group data to value and label format
       var groupDataOptions = groupd.map(group => {
@@ -265,7 +272,6 @@ function Dashboard() {
     e.preventDefault();
     try {
       const response = await Axios.post("http://localhost:3000/kanban/createapp", { app_acronym: app_acronym, app_description: app_description, app_rnumber: app_rnumber, app_startdate: app_startdate, app_enddate: app_enddate, app_permit_create: app_permit_create.value, app_permit_open: app_permit_open.value, app_permit_todolist: app_permit_todolist.value, app_permit_doing: app_permit_doing.value, app_permit_done: app_permit_done.value });
-      console.log(response.data);
 
       if (response.data.message == "Application created successfully") {
         toast.success(response.data.message, {
@@ -297,13 +303,24 @@ function Dashboard() {
     try {
       const response = await Axios.get("http://localhost:3000/kanban/getallapp");
       // setAllAppData(response.data.message);
-      console.log(response.data.message);
       var retrievedAppData = response.data.message;
 
       // var drawerAppData = retrievedAppData.map(app => {
       //   return { appName: app.app_acronym, appData: app };
       // });
+      console.log(retrievedAppData);
       setAllAppData(retrievedAppData);
+      if (main_app_acronym !== "None") {
+        for (var i = 0; i < retrievedAppData.length; i++) {
+          if (retrievedAppData[i].app_acronym === main_app_acronym) {
+            set_main_app_permit_create(retrievedAppData[i].app_permit_create);
+            set_main_app_permit_open(retrievedAppData[i].app_permit_open);
+            set_main_app_permit_todolist(retrievedAppData[i].app_permit_todolist);
+            set_main_app_permit_doing(retrievedAppData[i].app_permit_doing);
+            set_main_app_permit_done(retrievedAppData[i].app_permit_done);
+          }
+        }
+      }
     } catch (e) {
       console.log(e);
     }
@@ -350,7 +367,6 @@ function Dashboard() {
     e.preventDefault();
     try {
       const response = await Axios.post("http://localhost:3000/kanban/editapp", { app_acronym: app_acronym, app_description: app_description, app_startdate: app_startdate, app_enddate: app_enddate, app_permit_create: app_permit_create.value, app_permit_open: app_permit_open.value, app_permit_todolist: app_permit_todolist.value, app_permit_doing: app_permit_doing.value, app_permit_done: app_permit_done.value });
-      console.log(response.data);
 
       if (response.data.message == "Application updated successfully") {
         toast.success(response.data.message, {
@@ -358,7 +374,12 @@ function Dashboard() {
           autoClose: 2000
         });
         // Update the application
-        getAllApplication();
+        await getAllApplication();
+        await getTask(main_app_acronym);
+        await checkAllPermit();
+
+        console.log("hi");
+        console.log(main_app_permit_open_bool);
       }
       // Failed to create application
       if (!response.data.success) {
@@ -404,7 +425,6 @@ function Dashboard() {
     e.preventDefault();
     try {
       const response = await Axios.post("http://localhost:3000/kanban/createplan", { plan_mvp_name: plan_mvp_name, plan_startdate: plan_startdate, plan_enddate: plan_enddate, plan_colorcode: plan_colorcode, app_acronym: main_app_acronym });
-      //   console.log(response.data);
       if (response.data.message == "Plan created successfully") {
         getPlan(main_app_acronym);
         toast.success(response.data.message, {
@@ -431,7 +451,6 @@ function Dashboard() {
   async function getPlan(app_acronym) {
     try {
       const response = await Axios.get("http://localhost:3000/kanban/getplan", { params: { app_acronym: app_acronym } });
-      // console.log(response.data.message.length);
       if (response.data.message.length > 0) {
         setPlanData(response.data.message);
 
@@ -472,7 +491,6 @@ function Dashboard() {
     e.preventDefault();
     try {
       const response = await Axios.post("http://localhost:3000/kanban/editplan", { plan_mvp_name: plan_mvp_name, plan_startdate: plan_startdate, plan_enddate: plan_enddate, plan_colorcode: plan_colorcode, app_acronym: main_app_acronym });
-      console.log(response.data);
       if (response.data.message == "Plan updated successfully") {
         getPlan(main_app_acronym);
         toast.success(response.data.message, {
@@ -526,10 +544,8 @@ function Dashboard() {
     e.preventDefault();
     try {
       const response = await Axios.post("http://localhost:3000/kanban/createtask", { task_name: task_name, task_description: task_description, task_notes: task_notes, task_app_acronym: main_app_acronym, task_creator: username, task_owner: username });
-      console.log(response.data);
       // Task creation successful
       if (response.data.success) {
-        console.log(response);
         toast.success(response.data.message, {
           position: toast.POSITION.TOP_CENTER,
           autoClose: 2000
@@ -561,10 +577,13 @@ function Dashboard() {
       var taskMessage = response.data.message;
       if (response.data.message.length > 0) {
         setTaskData(taskMessage);
+
+        // Updating of task notes
         for (var i = 0; i < taskMessage.length; i++) {
-          console.log(taskMessage[i].task_id);
           if (taskMessage[i].task_id === task_id) {
             settask_notes(taskMessage[i].task_notes);
+            var noteTextArea = document.getElementById("show_task_notes");
+            noteTextArea.scrollTop = noteTextArea.scrollHeight;
           }
         }
       }
@@ -591,6 +610,8 @@ function Dashboard() {
     settask_owner(task.task_owner);
     settask_createdate(task.task_createdate);
     setOpenEditTaskModal(true);
+
+    console.log(availablePlan[0].value);
   }
 
   function afterOpenEditTaskModalFun() {
@@ -612,12 +633,13 @@ function Dashboard() {
       const response = await Axios.post("http://localhost:3000/kanban/edittask", { task_id: task_id, task_description: task_description, task_added_notes: task_added_notes, task_notes: task_notes, task_plan: task_plan, username: username, task_state: task_state });
       // Task update successful
       if (response.data.success) {
-        console.log(response);
         toast.success(response.data.message, {
           position: toast.POSITION.TOP_CENTER,
           autoClose: 2000
         });
         getTask(main_app_acronym);
+        var noteTextArea = document.getElementById("show_task_notes");
+        noteTextArea.scrollTop = noteTextArea.scrollHeight;
         // settask_notes(task_notes);
       }
       // Failed to create task
@@ -635,6 +657,63 @@ function Dashboard() {
       });
     }
   }
+
+  // Promotion & permit
+  /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+  // Perform check group to determine the button
+  async function checkPermit(username, group_name) {
+    try {
+      const response = await Axios.get("http://localhost:3000/kanban/checkpermit", { params: { username: username, group_name: group_name } });
+      console.log(response);
+      if (response.data.success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log(e);
+      console.log("Error on check permit");
+    }
+  }
+
+  // Set permission true false for check group
+  async function checkAllPermit() {
+    set_main_app_permit_create_bool(await checkPermit(username, main_app_permit_create));
+    set_main_app_permit_open_bool(await checkPermit(username, main_app_permit_open));
+    set_main_app_permit_todolist_bool(await checkPermit(username, main_app_permit_todolist));
+    set_main_app_permit_doing_bool(await checkPermit(username, main_app_permit_doing));
+    set_main_app_permit_done_bool(await checkPermit(username, main_app_permit_done));
+  }
+
+  // Handle promote task
+  async function promoteTaskFun(taskid, nextstate) {
+    console.log(checkPermit(username, main_app_permit_open));
+    // try {
+    //   const response = await Axios.post("http://localhost:3000/kanban/promotetask", { task_id: taskid, username: username, task_state: nextstate });
+    //   // Task update successful
+    //   if (response.data.success) {
+    //     toast.success(response.data.message, {
+    //       position: toast.POSITION.TOP_CENTER,
+    //       autoClose: 2000
+    //     });
+    //     getTask(main_app_acronym);
+    //   }
+    //   // Failed to create task
+    //   if (!response.data.success) {
+    //     toast.error(response.data.message, {
+    //       position: toast.POSITION.TOP_CENTER,
+    //       autoClose: 2000
+    //     });
+    //   }
+    // } catch (e) {
+    //   console.log(e);
+    //   toast.error("Problem promoting task, please contact admin", {
+    //     position: toast.POSITION.TOP_CENTER,
+    //     autoClose: 2000
+    //   });
+    // }
+  }
+
   // Authenticate User
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
@@ -704,6 +783,11 @@ function Dashboard() {
                           e.stopPropagation();
                           e.preventDefault();
                           set_main_app_acronym(app.app_acronym);
+                          set_main_app_permit_create(app.app_permit_create);
+                          set_main_app_permit_open(app.app_permit_open);
+                          set_main_app_permit_todolist(app.app_permit_todolist);
+                          set_main_app_permit_doing(app.app_permit_doing);
+                          set_main_app_permit_done(app.app_permit_done);
                           handleApplicationOnClick(app.app_acronym);
                           getTask(app.app_acronym);
                         }}
@@ -715,7 +799,6 @@ function Dashboard() {
                             e.stopPropagation();
                             e.preventDefault();
                             openEditAppModalFun(app);
-                            console.log(app.app_acronym);
                           }}
                         />
                       </button>
@@ -746,9 +829,94 @@ function Dashboard() {
                         if (task.task_state === "open") {
                           return (
                             <CCard>
-                              <CCardHeader>
+                              <CCardHeader style={{ backgroundColor: task.plan_colorcode }}>
                                 <CCardTitle>
-                                  <h6>{task.task_name}</h6>
+                                  <h6>
+                                    <center>
+                                      <b>{task.task_name}</b>
+                                    </center>
+                                  </h6>
+                                </CCardTitle>
+                              </CCardHeader>
+                              <CCardBody>
+                                <CRow>
+                                  <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
+                                    {" "}
+                                    <BsCaretLeftFill style={{ fontSize: "25px", cursor: "pointer" }} />
+                                  </CCol>
+
+                                  <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
+                                    {" "}
+                                    {main_app_permit_open_bool === true ? (
+                                      <BsCaretRightFill
+                                        style={{ fontSize: "25px", cursor: "pointer" }}
+                                        onClick={e => {
+                                          e.stopPropagation();
+                                          e.preventDefault();
+                                          promoteTaskFun(task.task_id, "todolist");
+                                          // promoteTaskFun(task.task_id, "todolist"); hidden={checkPermit({ username }, { main_app_permit_open }) === true ? true : false}
+                                          // console.log("Hi");
+                                          // console.log(checkPermit({ username }, { main_app_permit_open }));
+                                        }}
+                                      />
+                                    ) : null}
+                                    {/* <BsCaretRightFill
+                                      style={{ fontSize: "25px", cursor: "pointer" }}
+                                      hidden={main_app_permit_open_bool === true ? returnfalse : true}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        promoteTaskFun(task.task_id, "todolist");
+                                        // promoteTaskFun(task.task_id, "todolist"); hidden={checkPermit({ username }, { main_app_permit_open }) === true ? true : false}
+                                        // console.log("Hi");
+                                        // console.log(checkPermit({ username }, { main_app_permit_open }));
+                                      }}
+                                    /> */}
+                                  </CCol>
+                                </CRow>
+                                <CRow>ID: {task.task_id}</CRow>
+                                <CRow>Owner: {task.task_owner}</CRow>
+                                <CRow>
+                                  <CButton
+                                    className="btn btn-success btn-block"
+                                    href="#"
+                                    style={{ marginTop: "10px" }}
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      openEditTaskModalFun(task);
+                                    }}
+                                  >
+                                    Edit
+                                  </CButton>
+                                </CRow>
+                              </CCardBody>
+                            </CCard>
+                          );
+                        }
+                      })
+                    : null}
+                </CCardBody>
+              </CCard>
+            </CCol>
+            <CCol sm={2} style={{ width: "200px" }}>
+              <CCard>
+                <CCardHeader>
+                  <CCardTitle>To Do List</CCardTitle>
+                </CCardHeader>
+                <CCardBody>
+                  {taskData.length !== 0
+                    ? taskData.map(task => {
+                        if (task.task_state === "todolist") {
+                          return (
+                            <CCard>
+                              <CCardHeader style={{ backgroundColor: task.plan_colorcode }}>
+                                <CCardTitle>
+                                  <h6>
+                                    <center>
+                                      <b>{task.task_name}</b>
+                                    </center>
+                                  </h6>
                                 </CCardTitle>
                               </CCardHeader>
                               <CCardBody>
@@ -784,17 +952,6 @@ function Dashboard() {
                         }
                       })
                     : null}
-                </CCardBody>
-              </CCard>
-            </CCol>
-            <CCol sm={2} style={{ width: "200px" }}>
-              <CCard>
-                <CCardHeader>
-                  <CCardTitle>To Do List</CCardTitle>
-                </CCardHeader>
-                <CCardBody>
-                  <CCardText>With supporting text below as a natural lead-in to additional content.</CCardText>
-                  <CButton href="#">Go somewhere</CButton>
                 </CCardBody>
               </CCard>
             </CCol>
@@ -1224,15 +1381,3 @@ function Dashboard() {
 }
 
 export default Dashboard;
-
-{
-  /* Task Plan */
-}
-{
-  /* <div className="form-group">
-            <label htmlFor="task_plan" className="text-muted mb-1">
-              <h5>Task Plan</h5>
-            </label>
-            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} className="basic-multi-select" classNamePrefix="select" />
-          </div> */
-}

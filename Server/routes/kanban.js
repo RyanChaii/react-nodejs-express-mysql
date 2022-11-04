@@ -25,5 +25,9 @@ router.route("/kanban/createtask").post(kanban.createTask);
 router.route("/kanban/gettask").get(kanban.getTask);
 // Update Task
 router.route("/kanban/edittask").post(kanban.editTask);
+// Promote Task
+router.route("/kanban/promotetask").post(kanban.promoteTask);
+// Check Permit (check group function)
+router.route("/kanban/checkpermit").get(kanban.checkPermit);
 
 module.exports = router;

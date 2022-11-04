@@ -3,6 +3,7 @@ const db = require("../config/database");
 const { Checkgroup } = require("../utility/checkGroup");
 const { generateAudit } = require("../utility/generateAudit");
 const { retrieveRnumber, updateRnumber } = require("../utility/runningNumber");
+const { retrieveTask, retrieveTaskWithPlan } = require("../utility/retrieveTask");
 
 // Required library
 const e = require("express");
@@ -330,24 +331,39 @@ const createTask = async (req, res, next) => {
   });
 };
 
-// Retrieve task based on acronym
-const getTask = (req, res) => {
-  let sql = `SELECT * FROM task WHERE task_app_acronym = ?`;
+// Retrieve task and assign color code based on acronym
+const getTask = async (req, res) => {
+  try {
+    var app_acronym_input = req.query.app_acronym;
 
-  db.query(sql, [req.query.app_acronym], (err, results) => {
-    if (err) {
-      console.log("Error retrieving plan");
-      res.status(200).send({
-        success: false,
-        message: "Error retrieving task"
-      });
-    } else {
-      res.status(200).send({
-        success: true,
-        message: results
-      });
+    var taskWithoutPlan = await retrieveTask(app_acronym_input);
+    var taskWithPlan = await retrieveTaskWithPlan(app_acronym_input);
+
+    var taskData = taskWithoutPlan;
+
+    for (var i = 0; i < taskData.length; i++) {
+      taskData[i].plan_colorcode = "#";
     }
-  });
+
+    for (var i = 0; i < taskData.length; i++) {
+      for (var x = 0; x < taskWithPlan.length; x++) {
+        if (taskData[i].task_id === taskWithPlan[x].task_id) {
+          taskData[i] = taskWithPlan[x];
+        }
+      }
+    }
+
+    return res.status(200).send({
+      success: true,
+      message: taskData
+    });
+  } catch (e) {
+    console.log(e);
+    return res.status(200).send({
+      success: false,
+      message: "Error retrieving task"
+    });
+  }
 };
 
 // Update task
@@ -408,54 +424,69 @@ const editTask = async (req, res, next) => {
   });
 };
 
-module.exports = { getAllApplication, createApplication, editApplication, createPlan, getPlan, editPlan, createTask, getTask, editTask };
+// Promote task
+const promoteTask = async (req, res, next) => {
+  // Retrieving user input
+  var task_id_input = req.body.task_id;
+  var username_input = req.body.username;
+  var task_state_input = req.body.task_state;
 
-// console.log("here");
-// console.log(rnumber);
-// Regex to validate user input
-// const mvpnamePattern = /^[A-Za-z0-9_.]+$/;
+  // Create audit trail for updating of user
+  var auditMsg = generateAudit(username_input, task_state_input, "Task promoted to " + String(task_state_input.toUpperCase()));
 
-// // Plan MVP validation
-// if (!mvp_name_input.match(mvpnamePattern) || mvp_name_input.length < 3) {
-//   return res.status(200).send({
-//     success: false,
-//     message: "Plan name require minimum at least 3 characters, no space and special character. But allow dot and underscore"
-//   });
-// }
+  let sql = `UPDATE task 
+  SET task_state = ?, task_owner = ?
+  WHERE task_id = ?`;
 
-// let sql = `INSERT into plan
-// (plan_mvp_name, plan_startdate, plan_enddate, plan_app_acronym, plan_colorcode)
-// VALUES ('${mvp_name_input}','${startdate_input}', '${enddate_input}', '${acronym_input}', '${colorcode_input}')`;
+  db.query(sql, [task_state_input, username_input, task_id_input], (err, results) => {
+    try {
+      // SQL error messages
+      if (err) {
+        console.log(err);
+        return res.status(200).send({
+          success: false,
+          message: "Error updating task, please try again later"
+        });
+      }
+      // Successful messages
+      else {
+        return res.status(200).send({
+          success: true,
+          message: "Task promoted"
+        });
+      }
+    } catch (e) {
+      return res.status(200).send({
+        success: false,
+        message: "Error updating task, try again later"
+      });
+    }
+  });
+};
 
-// db.query(sql, (err, results) => {
-//   try {
-//     // SQL error messages
-//     if (err) {
-//       console.log("Error");
-//       // console.log(err);
-//       return res.status(200).send({
-//         success: false,
-//         message: "Error creating plan, ensure no duplicate plan name in the same application"
-//       });
-//     }
-//     // Successful messages
-//     else {
-//       return res.status(200).send({
-//         success: true,
-//         message: "Plan created successfully"
-//       });
-//     }
-//   } catch (e) {
-//     if (e.code == "ER_DUP_ENTRY") {
-//       return res.status(200).send({
-//         success: false,
-//         message: "No duplicate plan in the same application allowed"
-//       });
-//     } else {
-//       return res.status(200).send({
-//         success: false,
-//         message: "Error creating plan, try again later"
-//       });
-//     }
-//   }
-// });
+// Perform checkgroup, return true or false
+const checkPermit = async (req, res) => {
+  var username_input = req.query.username;
+  var group_name_input = req.query.group_name;
+
+  try {
+    var checkgroupresult = await Checkgroup(username_input, group_name_input);
+    // var checkgroupresult = await Checkgroup("admin", "admin");
+
+    if (checkgroupresult === true) {
+      return res.status(200).send({
+        success: true,
+        message: true
+      });
+    } else {
+      return res.status(200).send({
+        success: true,
+        message: false
+      });
+    }
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+module.exports = { getAllApplication, createApplication, editApplication, createPlan, getPlan, editPlan, createTask, getTask, editTask, promoteTask, checkPermit };
