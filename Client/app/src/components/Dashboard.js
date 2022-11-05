@@ -702,11 +702,14 @@ function Dashboard() {
 
   // Set permission true false for check group
   async function checkAllPermit() {
-    set_main_app_permit_create_bool(await checkPermit(username, main_app_permit_create));
-    set_main_app_permit_open_bool(await checkPermit(username, main_app_permit_open));
-    set_main_app_permit_todolist_bool(await checkPermit(username, main_app_permit_todolist));
-    set_main_app_permit_doing_bool(await checkPermit(username, main_app_permit_doing));
-    set_main_app_permit_done_bool(await checkPermit(username, main_app_permit_done));
+    if (main_app_acronym !== "None"){
+      set_main_app_permit_create_bool(await checkPermit(username, main_app_permit_create));
+      set_main_app_permit_open_bool(await checkPermit(username, main_app_permit_open));
+      set_main_app_permit_todolist_bool(await checkPermit(username, main_app_permit_todolist));
+      set_main_app_permit_doing_bool(await checkPermit(username, main_app_permit_doing));
+      set_main_app_permit_done_bool(await checkPermit(username, main_app_permit_done));
+  }
+
   }
 
   // Handle promote task
@@ -864,26 +867,11 @@ function Dashboard() {
                                 <CRow>
                                   <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
                                     {" "}
-                                    <BsCaretLeftFill style={{ fontSize: "25px", cursor: "pointer" }} />
+                                    <BsCaretLeftFill style={{ fontSize: "25px", cursor: "pointer" }} hidden={true}/>
                                   </CCol>
 
                                   <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
                                     {" "}
-                                    {/* {main_app_permit_open_bool === true ? (
-                                      <BsCaretRightFill
-                                        style={{ fontSize: "25px", cursor: "pointer" }}
-                                        onClick={e => {
-                                          e.stopPropagation();
-                                          e.preventDefault();
-                                          promoteTaskFun(task.task_id, "todolist");
-                                          // promoteTaskFun(task.task_id, "todolist"); hidden={checkPermit({ username }, { main_app_permit_open }) === true ? true : false}
-                                          // console.log("Hi");
-                                          // console.log(checkPermit({ username }, { main_app_permit_open }));
-                                          console.log("Hi");
-                                          console.log(main_app_permit_open_bool)
-                                        }}
-                                      />
-                                    ) : null} */}
                                     <BsCaretRightFill
                                       style={{ fontSize: "25px", cursor: "pointer" }}
                                       hidden={main_app_permit_open_bool === true ? false : true}
