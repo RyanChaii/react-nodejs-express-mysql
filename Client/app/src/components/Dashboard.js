@@ -213,6 +213,7 @@ function Dashboard() {
   // Create task Modal
   const [openEditTaskModal, setOpenEditTaskModal] = useState(false);
 
+
   // Application
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
@@ -308,7 +309,7 @@ function Dashboard() {
       // var drawerAppData = retrievedAppData.map(app => {
       //   return { appName: app.app_acronym, appData: app };
       // });
-      console.log(retrievedAppData);
+      // console.log(retrievedAppData);
       setAllAppData(retrievedAppData);
       if (main_app_acronym !== "None") {
         for (var i = 0; i < retrievedAppData.length; i++) {
@@ -397,12 +398,32 @@ function Dashboard() {
   }
 
   // Handle application onclick
-  async function handleApplicationOnClick(app_acronym) {
+  async function handleApplicationOnClick(app) {
     resetAppState();
     setPlanData("");
-    getPlan(app_acronym);
+    set_main_app_acronym(app.app_acronym);
+    set_main_app_permit_create(app.app_permit_create);
+    set_main_app_permit_open(app.app_permit_open);
+    set_main_app_permit_todolist(app.app_permit_todolist);
+    set_main_app_permit_doing(app.app_permit_doing);
+    set_main_app_permit_done(app.app_permit_done);
+    getPlan(app.app_acronym);
+    controlRightDrawer();
   }
 
+  // Disable right drawer if no application are selected
+  function controlRightDrawer(){
+    var drawer = document.getElementsByClassName("plan-drawer");
+   
+    if (main_app_acronym === "None"){
+      drawer[0].hidden = true;
+    }
+    else{
+      drawer[0].hidden = false;
+    }
+
+  }
+  
   // Plan
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
@@ -664,12 +685,15 @@ function Dashboard() {
   async function checkPermit(username, group_name) {
     try {
       const response = await Axios.get("http://localhost:3000/kanban/checkpermit", { params: { username: username, group_name: group_name } });
-      console.log(response);
       if (response.data.success) {
-        return true;
-      } else {
-        return false;
-      }
+        if (response.data.message){
+          return true;
+        }
+        else{
+          return false;
+        }
+        
+      } 
     } catch (e) {
       console.log(e);
       console.log("Error on check permit");
@@ -754,7 +778,12 @@ function Dashboard() {
     authuser(userlogintoken, check_is_admin);
     // Retrieve all application data
     getAllApplication();
-  }, []);
+    // Disable right drawer
+    controlRightDrawer();
+    // getTask(main_app_acronym);
+    // Check or refresh all permit
+    checkAllPermit()
+  }, [main_app_acronym,main_app_permit_create, main_app_permit_open, main_app_permit_todolist, main_app_permit_doing, main_app_permit_done]);
 
   return (
     <div>
@@ -782,14 +811,9 @@ function Dashboard() {
                         onClick={e => {
                           e.stopPropagation();
                           e.preventDefault();
-                          set_main_app_acronym(app.app_acronym);
-                          set_main_app_permit_create(app.app_permit_create);
-                          set_main_app_permit_open(app.app_permit_open);
-                          set_main_app_permit_todolist(app.app_permit_todolist);
-                          set_main_app_permit_doing(app.app_permit_doing);
-                          set_main_app_permit_done(app.app_permit_done);
-                          handleApplicationOnClick(app.app_acronym);
+                          handleApplicationOnClick(app);
                           getTask(app.app_acronym);
+                          controlRightDrawer();
                         }}
                       >
                         {app.app_acronym}
@@ -818,9 +842,7 @@ function Dashboard() {
               <CCard>
                 <CCardHeader>
                   <CCardTitle>
-                    <h5>
                       <b>Open</b>
-                    </h5>
                   </CCardTitle>
                 </CCardHeader>
                 <CCardBody>
@@ -847,7 +869,7 @@ function Dashboard() {
 
                                   <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
                                     {" "}
-                                    {main_app_permit_open_bool === true ? (
+                                    {/* {main_app_permit_open_bool === true ? (
                                       <BsCaretRightFill
                                         style={{ fontSize: "25px", cursor: "pointer" }}
                                         onClick={e => {
@@ -857,12 +879,14 @@ function Dashboard() {
                                           // promoteTaskFun(task.task_id, "todolist"); hidden={checkPermit({ username }, { main_app_permit_open }) === true ? true : false}
                                           // console.log("Hi");
                                           // console.log(checkPermit({ username }, { main_app_permit_open }));
+                                          console.log("Hi");
+                                          console.log(main_app_permit_open_bool)
                                         }}
                                       />
-                                    ) : null}
-                                    {/* <BsCaretRightFill
+                                    ) : null} */}
+                                    <BsCaretRightFill
                                       style={{ fontSize: "25px", cursor: "pointer" }}
-                                      hidden={main_app_permit_open_bool === true ? returnfalse : true}
+                                      hidden={main_app_permit_open_bool === true ? false : true}
                                       onClick={e => {
                                         e.stopPropagation();
                                         e.preventDefault();
@@ -871,7 +895,7 @@ function Dashboard() {
                                         // console.log("Hi");
                                         // console.log(checkPermit({ username }, { main_app_permit_open }));
                                       }}
-                                    /> */}
+                                    />
                                   </CCol>
                                 </CRow>
                                 <CRow>ID: {task.task_id}</CRow>
@@ -993,7 +1017,7 @@ function Dashboard() {
 
         {/* Right Menu, create task, create and manage plan */}
         <div className="col-lg-2" style={{ contentAlign: "center", textAlign: "center" }}>
-          <Drawer open={true} direction="right" enableOverlay={false} className="plan-drawer" style={{ backgroundColor: "black", position: "relative", color: "white", minHeight: "100vh", height: "100%", width: "100%" }}>
+          <Drawer open={true} direction="right" enableOverlay={false} className="plan-drawer" id="plan-drawer" style={{ backgroundColor: "black", position: "relative", color: "white", minHeight: "100vh", height: "100%", width: "100%" }}>
             <div className="row">
               <div className="col-12">
                 {/* Create task button */}

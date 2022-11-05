@@ -164,28 +164,3 @@ function UserProfile() {
 
 export default UserProfile;
 
-// Authenticate user
-// async function authuser(token, check_is_admin) {
-//   // Api call to authenticate and check group user
-//   try {
-//     const response = await Axios.get("http://localhost:3000/authuser", { params: { token: token, check_is_admin: check_is_admin } });
-//     // Get if user are valid
-//     const islogin = response.data.login;
-//     // Get if user is admin
-//     const isadmin = response.data.isAdmin;
-//     // Get decoded jwt code username
-//     const decoded_username = response.data.username;
-//     // Set username state
-//     setUsername(decoded_username);
-//     // Set admin state
-//     setIsAdmin(isadmin);
-
-//     if (!islogin) {
-//       sessionStorage.clear();
-//       navigate("/");
-//     }
-//   } catch (e) {
-//     console.log(e);
-//     navigate("/");
-//   }
-// }

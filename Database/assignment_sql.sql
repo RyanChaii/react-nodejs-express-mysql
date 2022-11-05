@@ -48,8 +48,8 @@
 
 -- CREATE TABLE IF NOT EXISTS application(
 -- app_acronym varchar(255) PRIMARY KEY,
--- app_description varchar(255),
--- App_Rnumber int(255) NOT NULL,
+-- app_description mediumtext,
+-- App_Rnumber int NOT NULL,
 -- app_startdate date NOT NULL,
 -- app_enddate date NOT NULL,
 -- app_permit_create varchar(255) NOT NULL,
@@ -59,13 +59,16 @@
 -- app_permit_done varchar(255) NOT NULL
 -- );
 
+-- DROP TABLE application;
+
 -- plan
 
 -- CREATE TABLE IF NOT EXISTS plan(
 -- plan_mvp_name varchar(255) NOT NULL,
 -- plan_startdate date NOT NULL,
 -- plan_enddate date NOT NULL,
--- plan_app_acronym varchar(255) NOT NULL
+-- plan_app_acronym varchar(255) NOT NULL,
+-- 	plan_colorcode varchar(255)
 -- );
 
 -- CREATE UNIQUE INDEX plan_id ON plan(plan_mvp_name, plan_app_acronym);
@@ -75,8 +78,8 @@
 -- CREATE TABLE IF NOT EXISTS task(
 -- task_id varchar(255) PRIMARY KEY,
 -- task_name varchar(255) NOT NULL,
--- task_description varchar(255),
--- task_notes varchar(255),
+-- task_description mediumtext,
+-- task_notes mediumtext,
 -- task_plan varchar(255),
 -- task_app_acronym varchar(255) NOT NULL,
 -- task_state varchar(255) NOT NULL,
