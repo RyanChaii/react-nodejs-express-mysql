@@ -713,32 +713,31 @@ function Dashboard() {
   }
 
   // Handle promote task
-  async function promoteTaskFun(taskid, nextstate) {
-    console.log(checkPermit(username, main_app_permit_open));
-    // try {
-    //   const response = await Axios.post("http://localhost:3000/kanban/promotetask", { task_id: taskid, username: username, task_state: nextstate });
-    //   // Task update successful
-    //   if (response.data.success) {
-    //     toast.success(response.data.message, {
-    //       position: toast.POSITION.TOP_CENTER,
-    //       autoClose: 2000
-    //     });
-    //     getTask(main_app_acronym);
-    //   }
-    //   // Failed to create task
-    //   if (!response.data.success) {
-    //     toast.error(response.data.message, {
-    //       position: toast.POSITION.TOP_CENTER,
-    //       autoClose: 2000
-    //     });
-    //   }
-    // } catch (e) {
-    //   console.log(e);
-    //   toast.error("Problem promoting task, please contact admin", {
-    //     position: toast.POSITION.TOP_CENTER,
-    //     autoClose: 2000
-    //   });
-    // }
+  async function promoteTaskFun(taskid) {
+    try {
+      const response = await Axios.post("http://localhost:3000/kanban/promotetask", { task_id: taskid, username: username, task_app_acronym: main_app_acronym });
+      // Task update successful
+      if (response.data.success) {
+        toast.success(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+        getTask(main_app_acronym);
+      }
+      // Failed to create task
+      if (!response.data.success) {
+        toast.error(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+      }
+    } catch (e) {
+      console.log(e);
+      toast.error("Problem promoting task, please contact admin", {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 2000
+      });
+    }
   }
 
   // Authenticate User
@@ -878,10 +877,7 @@ function Dashboard() {
                                       onClick={e => {
                                         e.stopPropagation();
                                         e.preventDefault();
-                                        promoteTaskFun(task.task_id, "todolist");
-                                        // promoteTaskFun(task.task_id, "todolist"); hidden={checkPermit({ username }, { main_app_permit_open }) === true ? true : false}
-                                        // console.log("Hi");
-                                        // console.log(checkPermit({ username }, { main_app_permit_open }));
+                                        promoteTaskFun(task.task_id);
                                       }}
                                     />
                                   </CCol>

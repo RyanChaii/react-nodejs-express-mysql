@@ -4,6 +4,7 @@ const { Checkgroup } = require("../utility/checkGroup");
 const { generateAudit } = require("../utility/generateAudit");
 const { retrieveRnumber, updateRnumber } = require("../utility/runningNumber");
 const { retrieveTask, retrieveTaskWithPlan } = require("../utility/retrieveTask");
+const { retrieveCurrentTaskState, retrieveApplicationPermit, retrieveTaskNotes } = require("../utility/promoteDemoteTask");
 
 // Required library
 const e = require("express");
@@ -388,7 +389,7 @@ const editTask = async(req, res, next) => {
 
     // If user added notes
     if (task_added_notes_input.length > 1 || task_added_notes_input.trim().length !== 0) {
-        auditMsg = auditMsg + "\n" + generateAudit(username_input, task_state_input, task_added_notes_input);
+        auditMsg = auditMsg + generateAudit(username_input, task_state_input, task_added_notes_input);
     }
 
     auditMsg = task_notes_input + auditMsg;
@@ -429,36 +430,56 @@ const promoteTask = async(req, res, next) => {
     // Retrieving user input
     var task_id_input = req.body.task_id;
     var username_input = req.body.username;
-    var task_state_input = req.body.task_state;
+    var task_app_acronym_input = req.body.task_app_acronym;
 
-    // Create audit trail for updating of user
-    var auditMsg = generateAudit(username_input, task_state_input, "Task promoted to " + String(task_state_input.toUpperCase()));
+    // Array of possible promotion state
+    var taskStateArray = ["open", "todolist", "doing", "done", "close"];
+
+    // Retrieve the state of the selected task
+    var currentTaskState = await retrieveCurrentTaskState(task_id_input);
+
+    // Retrieve the index of the current task in the array
+    var currentIndexOfTaskState = taskStateArray.indexOf(currentTaskState);
+
+    // Retrieve selected application permission
+    var applicationPermit = await retrieveApplicationPermit(task_app_acronym_input);
+    var applicationPermitArray = Object.values(applicationPermit);
+
+    // 2nd layer of backend check if user are permited to promote task, by performing checkgroup
+    if(await Checkgroup(username_input, applicationPermitArray[currentIndexOfTaskState]) === false){
+        return res.status(200).send({
+            success: false,
+            message: "You are not permited to promote this task"
+        });
+    }
+
+    // Promoted state value of the next promotion
+    var promotedState = taskStateArray[currentIndexOfTaskState+1];
+
+    // Retrieve current task notes
+    var currentAuditMsg = await retrieveTaskNotes(task_id_input);
+
+    // Create audit trail for promoting task
+    var auditMsg = await generateAudit(username_input, currentTaskState, "Task promoted to ->     " + String(promotedState.toUpperCase()));
+
+    currentAuditMsg = String(currentAuditMsg) + String(auditMsg);
 
     let sql = `UPDATE task 
-  SET task_state = ?, task_owner = ?
-  WHERE task_id = ?`;
+    SET task_state = ?, task_owner = ?, task_notes = ?
+    WHERE task_id = ?`;
 
-    db.query(sql, [task_state_input, username_input, task_id_input], (err, results) => {
+    db.query(sql, [promotedState, username_input, currentAuditMsg, task_id_input], (err, results) => {
         try {
-            // SQL error messages
-            if (err) {
-                console.log(err);
-                return res.status(200).send({
-                    success: false,
-                    message: "Error updating task, please try again later"
-                });
-            }
             // Successful messages
-            else {
-                return res.status(200).send({
-                    success: true,
-                    message: "Task promoted"
-                });
-            }
-        } catch (e) {
+            return res.status(200).send({
+                success: true,
+                message: "Task promoted"
+            });
+            
+        } catch (err) {
             return res.status(200).send({
                 success: false,
-                message: "Error updating task, try again later"
+                message: "Error promoting task, please try again later"
             });
         }
     });
