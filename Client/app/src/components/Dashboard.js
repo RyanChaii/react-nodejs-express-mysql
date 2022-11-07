@@ -46,7 +46,7 @@ const customStylesCreateApp = {
     right: 0,
     bottom: 0,
     backgroundColor: "rgba(255, 255, 255, 0.75)",
-    backdropFilter: "blur(5px)"
+    backdropFilter: "blur(1px)"
   }
 };
 // Style for edit App popup
@@ -69,7 +69,7 @@ const customStylesEditApp = {
     right: 0,
     bottom: 0,
     backgroundColor: "rgba(255, 255, 255, 0.75)",
-    backdropFilter: "blur(5px)"
+    backdropFilter: "blur(1px)"
   }
 };
 // Style for create plan popup
@@ -91,7 +91,7 @@ const customStylesCreatePlan = {
     right: 0,
     bottom: 0,
     backgroundColor: "rgba(255, 255, 255, 0.75)",
-    backdropFilter: "blur(5px)"
+    backdropFilter: "blur(1px)"
   }
 };
 
@@ -114,7 +114,7 @@ const customStylesEditPlan = {
     right: 0,
     bottom: 0,
     backgroundColor: "rgba(255, 255, 255, 0.75)",
-    backdropFilter: "blur(5px)"
+    backdropFilter: "blur(1px)"
   }
 };
 
@@ -137,7 +137,7 @@ const customStylesCreateTask = {
     right: 0,
     bottom: 0,
     backgroundColor: "rgba(255, 255, 255, 0.75)",
-    backdropFilter: "blur(5px)"
+    backdropFilter: "blur(1px)"
   }
 };
 
@@ -181,6 +181,8 @@ function Dashboard() {
   const [main_app_permit_todolist_bool, set_main_app_permit_todolist_bool] = useState(false);
   const [main_app_permit_doing_bool, set_main_app_permit_doing_bool] = useState(false);
   const [main_app_permit_done_bool, set_main_app_permit_done_bool] = useState(false);
+  // Permission to create application / edit application
+  const [main_app_permit_createapp_bool, set_main_app_permit_createapp_bool] = useState(false);
   // Create plan Modal
   const [openCreatePlanModal, setOpenCreatePlanModal] = useState(false);
   // Create Plan State
@@ -192,6 +194,8 @@ function Dashboard() {
   const [planData, setPlanData] = useState("");
   // Edit plan Modal
   const [openEditPlanModal, setOpenEditPlanModal] = useState(false);
+  // Permission to create / edit plan
+  const [main_app_permit_manageplan_bool, set_main_app_permit_manageplan_bool] = useState(false);
   // Create task Modal
   const [openCreateTaskModal, setOpenCreateTaskModal] = useState(false);
   // Create task state
@@ -210,9 +214,10 @@ function Dashboard() {
   const [availablePlan, setAvailablePlan] = useState("");
   // Retrieved task state
   const [taskData, setTaskData] = useState("");
-  // Create task Modal
+  // Edit task Modal
   const [openEditTaskModal, setOpenEditTaskModal] = useState(false);
-
+  // View task Modal
+  const [openViewTaskModal, setOpenViewTaskModal] = useState(false);
 
   // Application
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -239,12 +244,13 @@ function Dashboard() {
     appbtn.forEach(btn => {
       btn.classList.add("disabled", true);
     });
-
+    drawerController();
     setOpenCreateAppModal(true);
   }
 
   // Modal for close create application
   function closeAppModal() {
+    drawerController();
     setOpenCreateAppModal(false);
 
     var appbtn = document.querySelectorAll(".btn-application");
@@ -306,11 +312,8 @@ function Dashboard() {
       // setAllAppData(response.data.message);
       var retrievedAppData = response.data.message;
 
-      // var drawerAppData = retrievedAppData.map(app => {
-      //   return { appName: app.app_acronym, appData: app };
-      // });
-      // console.log(retrievedAppData);
       setAllAppData(retrievedAppData);
+
       if (main_app_acronym !== "None") {
         for (var i = 0; i < retrievedAppData.length; i++) {
           if (retrievedAppData[i].app_acronym === main_app_acronym) {
@@ -323,6 +326,7 @@ function Dashboard() {
         }
       }
     } catch (e) {
+      console.log("Error at getting all application");
       console.log(e);
     }
   }
@@ -353,13 +357,14 @@ function Dashboard() {
     setapp_permit_done(() => {
       return { value: app.app_permit_done, label: app.app_permit_done };
     });
-
+    drawerController();
     setOpenEditAppModal(true);
   }
 
-  // Modal for close create application
+  // Modal for close create application modal
   function closeEditAppModalFun() {
     resetAppState();
+    drawerController();
     setOpenEditAppModal(false);
   }
 
@@ -378,9 +383,7 @@ function Dashboard() {
         await getAllApplication();
         await getTask(main_app_acronym);
         await checkAllPermit();
-
-        console.log("hi");
-        console.log(main_app_permit_open_bool);
+        // Prevent controller from appearing
       }
       // Failed to create application
       if (!response.data.success) {
@@ -408,27 +411,27 @@ function Dashboard() {
     set_main_app_permit_doing(app.app_permit_doing);
     set_main_app_permit_done(app.app_permit_done);
     getPlan(app.app_acronym);
-    controlRightDrawer();
   }
 
-  // Disable right drawer if no application are selected
-  function controlRightDrawer(){
-    var drawer = document.getElementsByClassName("plan-drawer");
-   
-    if (main_app_acronym === "None"){
-      drawer[0].hidden = true;
+  // Perform check group to determine the button
+  async function checkAppPermit(username) {
+    try {
+      const response = await Axios.get("http://localhost:3000/kanban/checkapppermit", { params: { username: username } });
+      if (response.data.success) {
+        set_main_app_permit_createapp_bool(response.data.message);
+      }
+    } catch (e) {
+      console.log(e);
+      console.log("Error on check application permit");
     }
-    else{
-      drawer[0].hidden = false;
-    }
-
   }
-  
+
   // Plan
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
   // Modal for open create plan
   function openCreatePlanModalFun() {
+    drawerController();
     setOpenCreatePlanModal(true);
   }
 
@@ -438,6 +441,7 @@ function Dashboard() {
     setplan_startdate("");
     setplan_enddate("");
     setplan_colorcode("");
+    drawerController();
     setOpenCreatePlanModal(false);
   }
 
@@ -495,6 +499,7 @@ function Dashboard() {
     setplan_startdate(new Date(plan.plan_startdate));
     setplan_enddate(new Date(plan.plan_enddate));
     setplan_colorcode(plan.plan_colorcode);
+    drawerController();
     setOpenEditPlanModal(true);
   }
 
@@ -504,6 +509,7 @@ function Dashboard() {
     setplan_startdate("");
     setplan_enddate("");
     setplan_colorcode("");
+    drawerController();
     setOpenEditPlanModal(false);
   }
 
@@ -534,6 +540,18 @@ function Dashboard() {
     }
   }
 
+  // Perform check group to determine the button
+  async function checkPlanPermit(username) {
+    try {
+      const response = await Axios.get("http://localhost:3000/kanban/checkplanpermit", { params: { username: username } });
+      if (response.data.success) {
+        set_main_app_permit_manageplan_bool(response.data.message);
+      }
+    } catch (e) {
+      console.log(e);
+      console.log("Error on check application permit");
+    }
+  }
   // Task
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
@@ -552,11 +570,13 @@ function Dashboard() {
 
   // Modal for open create task
   function openCreateTaskModalFun() {
+    drawerController();
     setOpenCreateTaskModal(true);
   }
 
   // Modal for close create task
   function closeCreateTaskModalFun() {
+    drawerController();
     setOpenCreateTaskModal(false);
   }
 
@@ -630,6 +650,7 @@ function Dashboard() {
     settask_creator(task.task_creator);
     settask_owner(task.task_owner);
     settask_createdate(task.task_createdate);
+    drawerController();
     setOpenEditTaskModal(true);
 
     console.log(availablePlan[0].value);
@@ -640,9 +661,10 @@ function Dashboard() {
     noteTextArea.scrollTop = noteTextArea.scrollHeight;
   }
 
-  // Modal for close create task
+  // Modal for close edit task
   function closeEditTaskModalFun() {
     resetTaskState();
+    drawerController();
     setOpenEditTaskModal(false);
   }
 
@@ -651,7 +673,7 @@ function Dashboard() {
     e.preventDefault();
     // e.stopPropagation();
     try {
-      const response = await Axios.post("http://localhost:3000/kanban/edittask", { task_id: task_id, task_description: task_description, task_added_notes: task_added_notes, task_notes: task_notes, task_plan: task_plan, username: username, task_state: task_state });
+      const response = await Axios.post("http://localhost:3000/kanban/edittask", { task_id: task_id, task_added_notes: task_added_notes, task_plan: task_plan, username: username, task_state: task_state });
       // Task update successful
       if (response.data.success) {
         toast.success(response.data.message, {
@@ -679,6 +701,36 @@ function Dashboard() {
     }
   }
 
+  // Modal for open view task
+  function openViewTaskModalFun(task) {
+    settask_id(task.task_id);
+    settask_name(task.task_name);
+    settask_description(task.task_description);
+    // settask_added_notes(task.task_notes);
+    settask_notes(task.task_notes);
+    settask_plan(() => {
+      return { value: task.task_plan, label: task.task_plan };
+    });
+    settask_state(task.task_state);
+    settask_creator(task.task_creator);
+    settask_owner(task.task_owner);
+    settask_createdate(task.task_createdate);
+    drawerController();
+    setOpenViewTaskModal(true);
+  }
+
+  function afterOpenViewTaskModalFun() {
+    var noteTextArea = document.getElementById("show_task_notes");
+    noteTextArea.scrollTop = noteTextArea.scrollHeight;
+  }
+
+  // Modal for close view task
+  function closeViewTaskModalFun() {
+    resetTaskState();
+    drawerController();
+    setOpenViewTaskModal(false);
+  }
+
   // Promotion & permit
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
   // Perform check group to determine the button
@@ -686,14 +738,12 @@ function Dashboard() {
     try {
       const response = await Axios.get("http://localhost:3000/kanban/checkpermit", { params: { username: username, group_name: group_name } });
       if (response.data.success) {
-        if (response.data.message){
+        if (response.data.message) {
           return true;
-        }
-        else{
+        } else {
           return false;
         }
-        
-      } 
+      }
     } catch (e) {
       console.log(e);
       console.log("Error on check permit");
@@ -702,14 +752,13 @@ function Dashboard() {
 
   // Set permission true false for check group
   async function checkAllPermit() {
-    if (main_app_acronym !== "None"){
+    if (main_app_acronym !== "None") {
       set_main_app_permit_create_bool(await checkPermit(username, main_app_permit_create));
       set_main_app_permit_open_bool(await checkPermit(username, main_app_permit_open));
       set_main_app_permit_todolist_bool(await checkPermit(username, main_app_permit_todolist));
       set_main_app_permit_doing_bool(await checkPermit(username, main_app_permit_doing));
       set_main_app_permit_done_bool(await checkPermit(username, main_app_permit_done));
-  }
-
+    }
   }
 
   // Handle promote task
@@ -738,6 +787,70 @@ function Dashboard() {
         autoClose: 2000
       });
     }
+  }
+
+  // Handle promote task
+  async function demoteTaskFun(taskid) {
+    try {
+      const response = await Axios.post("http://localhost:3000/kanban/demotetask", { task_id: taskid, username: username, task_app_acronym: main_app_acronym });
+      // Task update successful
+      if (response.data.success) {
+        toast.success(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+        getTask(main_app_acronym);
+      }
+      // Failed to create task
+      if (!response.data.success) {
+        toast.error(response.data.message, {
+          position: toast.POSITION.TOP_CENTER,
+          autoClose: 2000
+        });
+      }
+    } catch (e) {
+      console.log("Error at demoteTaskFun");
+      toast.error("Problem demoting task, please contact admin", {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 2000
+      });
+    }
+  }
+
+  // UI / UX Controller
+  /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
+  function drawerController() {
+    var leftDrawer = document.getElementsByClassName("application-drawer");
+    var rightDrawer = document.getElementsByClassName("plan-drawer");
+
+    if (main_app_acronym !== "None") {
+      if (leftDrawer[0].hidden === true) {
+        leftDrawer[0].hidden = false;
+        rightDrawer[0].hidden = false;
+      } else {
+        leftDrawer[0].hidden = true;
+        rightDrawer[0].hidden = true;
+      }
+    }
+  }
+
+  function rightDrawerController() {
+    var rightDrawer = document.getElementsByClassName("plan-drawer");
+    if (main_app_acronym === "None") {
+      rightDrawer[0].hidden = true;
+      // if (rightDrawer[0].hidden === true) {
+      //   rightDrawer[0].hidden = false;
+      // } else {
+      //   rightDrawer[0].hidden = true;
+      // }
+    }
+  }
+  function showAllDrawerController() {
+    var leftDrawer = document.getElementsByClassName("application-drawer");
+    var rightDrawer = document.getElementsByClassName("plan-drawer");
+
+    leftDrawer[0].hidden = false;
+    rightDrawer[0].hidden = false;
   }
 
   // Authenticate User
@@ -778,14 +891,17 @@ function Dashboard() {
     const check_is_admin = "admin";
     // Async method call for verify user
     authuser(userlogintoken, check_is_admin);
+    // Check if current user have the permission to create / edit application (PL group required)
+    checkAppPermit(username);
+    // Check if current user have the permission to create, assign & edit plan (PM group required)
+    checkPlanPermit(username);
     // Retrieve all application data
     getAllApplication();
-    // Disable right drawer
-    controlRightDrawer();
-    // getTask(main_app_acronym);
     // Check or refresh all permit
-    checkAllPermit()
-  }, [main_app_acronym,main_app_permit_create, main_app_permit_open, main_app_permit_todolist, main_app_permit_doing, main_app_permit_done]);
+    checkAllPermit();
+    rightDrawerController();
+    // drawerController();
+  }, [main_app_acronym, main_app_permit_create, main_app_permit_open, main_app_permit_todolist, main_app_permit_doing, main_app_permit_done, username]);
 
   return (
     <div>
@@ -795,7 +911,7 @@ function Dashboard() {
         <div className="col-2" style={{ contentAlign: "center", textAlign: "center" }}>
           <Drawer open={true} direction="left" enableOverlay={false} className="application-drawer" style={{ backgroundColor: "black", position: "relative", color: "white", minHeight: "100vh", height: "100%", width: "100%" }}>
             {/* Create app button */}
-            <button className="btn btn-info" id="btnCreateApp" onClick={openAppModal} style={{ marginBottom: "50px", marginTop: "50px" }}>
+            <button className="btn btn-info" id="btnCreateApp" onClick={openAppModal} style={{ marginBottom: "50px", marginTop: "50px" }} hidden={main_app_permit_createapp_bool === true ? false : true}>
               Create Application <i className="fa fa-plus" style={{ marginLeft: "10px", fontSize: "20px" }}></i>
             </button>
             {/* Create app header */}
@@ -815,7 +931,7 @@ function Dashboard() {
                           e.preventDefault();
                           handleApplicationOnClick(app);
                           getTask(app.app_acronym);
-                          controlRightDrawer();
+                          showAllDrawerController();
                         }}
                       >
                         {app.app_acronym}
@@ -826,6 +942,7 @@ function Dashboard() {
                             e.preventDefault();
                             openEditAppModalFun(app);
                           }}
+                          hidden={main_app_permit_createapp_bool === true ? false : true}
                         />
                       </button>
                     </div>
@@ -840,11 +957,12 @@ function Dashboard() {
           <h1>Welcome to TMS!</h1>
           <h2>Selected Application: {main_app_acronym}</h2>
           <CRow>
+            {/* Open */}
             <CCol sm={2} style={{ width: "200px" }}>
               <CCard>
-                <CCardHeader>
+                <CCardHeader style={{ backgroundColor: "darkgrey" }}>
                   <CCardTitle>
-                      <b>Open</b>
+                    <b>Open</b>
                   </CCardTitle>
                 </CCardHeader>
                 <CCardBody>
@@ -853,7 +971,7 @@ function Dashboard() {
                         if (task.task_state === "open") {
                           return (
                             <CCard>
-                              <CCardHeader style={{ backgroundColor: task.plan_colorcode }}>
+                              <CCardHeader style={{ backgroundColor: task.plan_colorcode, color: "black", opacity: "0.9" }}>
                                 <CCardTitle>
                                   <h6>
                                     <center>
@@ -866,7 +984,7 @@ function Dashboard() {
                                 <CRow>
                                   <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
                                     {" "}
-                                    <BsCaretLeftFill style={{ fontSize: "25px", cursor: "pointer" }} hidden={true}/>
+                                    <BsCaretLeftFill style={{ fontSize: "25px", cursor: "pointer" }} hidden={true} />
                                   </CCol>
 
                                   <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
@@ -885,18 +1003,33 @@ function Dashboard() {
                                 <CRow>ID: {task.task_id}</CRow>
                                 <CRow>Owner: {task.task_owner}</CRow>
                                 <CRow>
-                                  <CButton
-                                    className="btn btn-success btn-block"
-                                    href="#"
-                                    style={{ marginTop: "10px" }}
-                                    onClick={e => {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                      openEditTaskModalFun(task);
-                                    }}
-                                  >
-                                    Edit
-                                  </CButton>
+                                  {main_app_permit_open_bool === true ? (
+                                    <CButton
+                                      className="btn btn-success btn-block"
+                                      href="#"
+                                      style={{ marginTop: "10px" }}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        openEditTaskModalFun(task);
+                                      }}
+                                    >
+                                      Edit
+                                    </CButton>
+                                  ) : (
+                                    <CButton
+                                      className="btn btn-primary btn-block"
+                                      href="#"
+                                      style={{ marginTop: "10px" }}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        openViewTaskModalFun(task);
+                                      }}
+                                    >
+                                      View
+                                    </CButton>
+                                  )}
                                 </CRow>
                               </CCardBody>
                             </CCard>
@@ -907,10 +1040,13 @@ function Dashboard() {
                 </CCardBody>
               </CCard>
             </CCol>
+            {/* Todolist */}
             <CCol sm={2} style={{ width: "200px" }}>
               <CCard>
-                <CCardHeader>
-                  <CCardTitle>To Do List</CCardTitle>
+                <CCardHeader style={{ backgroundColor: "darkgrey" }}>
+                  <CCardTitle>
+                    <b>To Do List</b>
+                  </CCardTitle>
                 </CCardHeader>
                 <CCardBody>
                   {taskData.length !== 0
@@ -918,7 +1054,7 @@ function Dashboard() {
                         if (task.task_state === "todolist") {
                           return (
                             <CCard>
-                              <CCardHeader style={{ backgroundColor: task.plan_colorcode }}>
+                              <CCardHeader style={{ backgroundColor: task.plan_colorcode, color: "black", opacity: "0.9" }}>
                                 <CCardTitle>
                                   <h6>
                                     <center>
@@ -931,28 +1067,52 @@ function Dashboard() {
                                 <CRow>
                                   <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
                                     {" "}
-                                    <BsCaretLeftFill style={{ fontSize: "25px", cursor: "pointer" }} />
+                                    <BsCaretLeftFill style={{ fontSize: "25px", cursor: "pointer" }} hidden={true} />
                                   </CCol>
+
                                   <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
                                     {" "}
-                                    <BsCaretRightFill style={{ fontSize: "25px", cursor: "pointer" }} />
+                                    <BsCaretRightFill
+                                      style={{ fontSize: "25px", cursor: "pointer" }}
+                                      hidden={main_app_permit_todolist_bool === true ? false : true}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        promoteTaskFun(task.task_id);
+                                      }}
+                                    />
                                   </CCol>
                                 </CRow>
                                 <CRow>ID: {task.task_id}</CRow>
                                 <CRow>Owner: {task.task_owner}</CRow>
                                 <CRow>
-                                  <CButton
-                                    className="btn btn-success btn-block"
-                                    href="#"
-                                    style={{ marginTop: "10px" }}
-                                    onClick={e => {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                      openEditTaskModalFun(task);
-                                    }}
-                                  >
-                                    Edit
-                                  </CButton>
+                                  {main_app_permit_todolist_bool === true ? (
+                                    <CButton
+                                      className="btn btn-success btn-block"
+                                      href="#"
+                                      style={{ marginTop: "10px" }}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        openEditTaskModalFun(task);
+                                      }}
+                                    >
+                                      Edit
+                                    </CButton>
+                                  ) : (
+                                    <CButton
+                                      className="btn btn-primary btn-block"
+                                      href="#"
+                                      style={{ marginTop: "10px" }}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        openViewTaskModalFun(task);
+                                      }}
+                                    >
+                                      View
+                                    </CButton>
+                                  )}
                                 </CRow>
                               </CCardBody>
                             </CCard>
@@ -963,36 +1123,234 @@ function Dashboard() {
                 </CCardBody>
               </CCard>
             </CCol>
+            {/* Doing */}
             <CCol sm={2} style={{ width: "200px" }}>
               <CCard>
-                <CCardHeader>
-                  <CCardTitle>Doing</CCardTitle>
+                <CCardHeader style={{ backgroundColor: "darkgrey" }}>
+                  <CCardTitle>
+                    <b>Doing</b>
+                  </CCardTitle>
                 </CCardHeader>
                 <CCardBody>
-                  <CCardText>With supporting text below as a natural lead-in to additional content.</CCardText>
-                  <CButton href="#">Go somewhere</CButton>
+                  {taskData.length !== 0
+                    ? taskData.map(task => {
+                        if (task.task_state === "doing") {
+                          return (
+                            <CCard>
+                              <CCardHeader style={{ backgroundColor: task.plan_colorcode, color: "black", opacity: "0.9" }}>
+                                <CCardTitle>
+                                  <h6>
+                                    <center>
+                                      <b>{task.task_name}</b>
+                                    </center>
+                                  </h6>
+                                </CCardTitle>
+                              </CCardHeader>
+                              <CCardBody>
+                                <CRow>
+                                  <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
+                                    {" "}
+                                    <BsCaretLeftFill
+                                      style={{ fontSize: "25px", cursor: "pointer" }}
+                                      hidden={main_app_permit_doing_bool === true ? false : true}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        demoteTaskFun(task.task_id);
+                                      }}
+                                    />
+                                  </CCol>
+
+                                  <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
+                                    {" "}
+                                    <BsCaretRightFill
+                                      style={{ fontSize: "25px", cursor: "pointer" }}
+                                      hidden={main_app_permit_doing_bool === true ? false : true}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        promoteTaskFun(task.task_id);
+                                      }}
+                                    />
+                                  </CCol>
+                                </CRow>
+                                <CRow>ID: {task.task_id}</CRow>
+                                <CRow>Owner: {task.task_owner}</CRow>
+                                <CRow>
+                                  {main_app_permit_doing_bool === true ? (
+                                    <CButton
+                                      className="btn btn-success btn-block"
+                                      href="#"
+                                      style={{ marginTop: "10px" }}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        openEditTaskModalFun(task);
+                                      }}
+                                    >
+                                      Edit
+                                    </CButton>
+                                  ) : (
+                                    <CButton
+                                      className="btn btn-primary btn-block"
+                                      href="#"
+                                      style={{ marginTop: "10px" }}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        openViewTaskModalFun(task);
+                                      }}
+                                    >
+                                      View
+                                    </CButton>
+                                  )}
+                                </CRow>
+                              </CCardBody>
+                            </CCard>
+                          );
+                        }
+                      })
+                    : null}
                 </CCardBody>
               </CCard>
             </CCol>
+            {/* Done */}
             <CCol sm={2} style={{ width: "200px" }}>
               <CCard>
-                <CCardHeader>
-                  <CCardTitle>Done</CCardTitle>
+                <CCardHeader style={{ backgroundColor: "darkgrey" }}>
+                  <CCardTitle>
+                    <b>Done</b>
+                  </CCardTitle>
                 </CCardHeader>
                 <CCardBody>
-                  <CCardText>With supporting text below as a natural lead-in to additional content.</CCardText>
-                  <CButton href="#">Go somewhere</CButton>
+                  {taskData.length !== 0
+                    ? taskData.map(task => {
+                        if (task.task_state === "done") {
+                          return (
+                            <CCard>
+                              <CCardHeader style={{ backgroundColor: task.plan_colorcode, color: "black", opacity: "0.9" }}>
+                                <CCardTitle>
+                                  <h6>
+                                    <center>
+                                      <b>{task.task_name}</b>
+                                    </center>
+                                  </h6>
+                                </CCardTitle>
+                              </CCardHeader>
+                              <CCardBody>
+                                <CRow>
+                                  <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
+                                    {" "}
+                                    <BsCaretLeftFill
+                                      style={{ fontSize: "25px", cursor: "pointer" }}
+                                      hidden={main_app_permit_done_bool === true ? false : true}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        demoteTaskFun(task.task_id);
+                                      }}
+                                    />
+                                  </CCol>
+
+                                  <CCol sm={6} style={{ paddingLeft: "20px", marginBottom: "10px" }}>
+                                    {" "}
+                                    <BsCaretRightFill
+                                      style={{ fontSize: "25px", cursor: "pointer" }}
+                                      hidden={main_app_permit_done_bool === true ? false : true}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        promoteTaskFun(task.task_id);
+                                      }}
+                                    />
+                                  </CCol>
+                                </CRow>
+                                <CRow>ID: {task.task_id}</CRow>
+                                <CRow>Owner: {task.task_owner}</CRow>
+                                <CRow>
+                                  {main_app_permit_done_bool === true ? (
+                                    <CButton
+                                      className="btn btn-success btn-block"
+                                      href="#"
+                                      style={{ marginTop: "10px" }}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        openEditTaskModalFun(task);
+                                      }}
+                                    >
+                                      Edit
+                                    </CButton>
+                                  ) : (
+                                    <CButton
+                                      className="btn btn-primary btn-block"
+                                      href="#"
+                                      style={{ marginTop: "10px" }}
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        openViewTaskModalFun(task);
+                                      }}
+                                    >
+                                      View
+                                    </CButton>
+                                  )}
+                                </CRow>
+                              </CCardBody>
+                            </CCard>
+                          );
+                        }
+                      })
+                    : null}
                 </CCardBody>
               </CCard>
             </CCol>
+            {/* Close */}
             <CCol sm={2} style={{ width: "200px" }}>
               <CCard>
-                <CCardHeader>
-                  <CCardTitle>Close</CCardTitle>
+                <CCardHeader style={{ backgroundColor: "darkgrey" }}>
+                  <CCardTitle>
+                    <b>Close</b>
+                  </CCardTitle>
                 </CCardHeader>
                 <CCardBody>
-                  <CCardText>With supporting text below as a natural lead-in to additional content.</CCardText>
-                  <CButton href="#">Go somewhere</CButton>
+                  {taskData.length !== 0
+                    ? taskData.map(task => {
+                        if (task.task_state === "close") {
+                          return (
+                            <CCard>
+                              <CCardHeader style={{ backgroundColor: task.plan_colorcode, color: "black", opacity: "0.9" }}>
+                                <CCardTitle>
+                                  <h6>
+                                    <center>
+                                      <b>{task.task_name}</b>
+                                    </center>
+                                  </h6>
+                                </CCardTitle>
+                              </CCardHeader>
+                              <CCardBody>
+                                <CRow>ID: {task.task_id}</CRow>
+                                <CRow>Owner: {task.task_owner}</CRow>
+                                <CRow>
+                                  <CButton
+                                    className="btn btn-primary btn-block"
+                                    href="#"
+                                    style={{ marginTop: "10px" }}
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      openViewTaskModalFun(task);
+                                    }}
+                                  >
+                                    View
+                                  </CButton>
+                                </CRow>
+                              </CCardBody>
+                            </CCard>
+                          );
+                        }
+                      })
+                    : null}
                 </CCardBody>
               </CCard>
             </CCol>
@@ -1005,13 +1363,13 @@ function Dashboard() {
             <div className="row">
               <div className="col-12">
                 {/* Create task button */}
-                <button className="btn btn-default" id="btnCreateTask" onClick={openCreateTaskModalFun} style={{ marginBottom: "30px", marginTop: "50px", backgroundColor: "#6ED625" }}>
+                <button className="btn btn-default" id="btnCreateTask" onClick={openCreateTaskModalFun} style={{ marginBottom: "30px", marginTop: "50px", backgroundColor: "#6ED625" }} hidden={main_app_permit_create_bool === true ? false : true}>
                   Create Task <i className="fa fa-plus" style={{ marginLeft: "10px", fontSize: "20px" }}></i>
                 </button>
               </div>
               <div className="col-12">
-                {/* Create task button */}
-                <button className="btn btn-default" id="btnCreatePlan" onClick={openCreatePlanModalFun} style={{ marginBottom: "50px", marginTop: "1px", backgroundColor: "#5744CD" }}>
+                {/* Create plan button */}
+                <button className="btn btn-default" id="btnCreatePlan" onClick={openCreatePlanModalFun} style={{ marginBottom: "50px", marginTop: "1px", backgroundColor: "#5744CD" }} hidden={main_app_permit_manageplan_bool === true ? false : true}>
                   Create Plan <i className="fa fa-plus" style={{ marginLeft: "10px", fontSize: "20px" }}></i>
                 </button>
               </div>
@@ -1283,7 +1641,7 @@ function Dashboard() {
             </label>
             <SliderPicker onChange={e => setplan_colorcode(e.hex)} color={plan_colorcode} />
           </div>
-          <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
+          <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }} hidden={main_app_permit_manageplan_bool === true ? false : true}>
             Edit Plan
           </button>
         </form>
@@ -1338,7 +1696,7 @@ function Dashboard() {
             <label htmlFor="task_description" className="text-muted mb-1">
               <h5>Task Description</h5>
             </label>
-            <textarea onChange={e => settask_description(e.target.value)} id="edit_task_description" className="form-control" type="text" placeholder="Enter task description (optional)" autoComplete="off" defaultValue={task_description}></textarea>
+            <textarea onChange={e => settask_description(e.target.value)} id="edit_task_description" className="form-control" type="text" placeholder="Enter task description (optional)" autoComplete="off" defaultValue={task_description} disabled={true}></textarea>
           </div>
           {/* Task Notes */}
           <div className="form-group">
@@ -1353,7 +1711,7 @@ function Dashboard() {
             <label htmlFor="edit_task_plan" className="text-muted mb-1">
               <h5>Task Plan</h5>
             </label>
-            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} defaultValue={task_plan} className="basic-multi-select" classNamePrefix="select" />
+            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} defaultValue={task_plan} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_manageplan_bool === true ? false : true} />
           </div>
           {/* Task Creator */}
           <div className="form-group">
@@ -1382,6 +1740,66 @@ function Dashboard() {
           <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
             Update Task
           </button>
+        </form>
+      </Modal>
+
+      {/* Modal for view task */}
+      <Modal isOpen={openViewTaskModal} onRequestClose={closeViewTaskModalFun} onAfterOpen={afterOpenViewTaskModalFun} style={customStylesCreateTask}>
+        <h2 style={{ paddingBottom: "20px" }}>{task_name}</h2>
+        <form>
+          {/* Task ID */}
+          <div className="form-group">
+            <label htmlFor="task_id" className="text-muted mb-1">
+              <h5>
+                Task ID <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_id}</b>
+              </h5>
+            </label>
+          </div>
+          {/* Task Description */}
+          <div className="form-group">
+            <label htmlFor="task_description" className="text-muted mb-1">
+              <h5>Task Description</h5>
+            </label>
+            <textarea onChange={e => settask_description(e.target.value)} id="edit_task_description" className="form-control" type="text" placeholder="Enter task description (optional)" autoComplete="off" defaultValue={task_description} disabled></textarea>
+          </div>
+          {/* Task Notes */}
+          <div className="form-group">
+            <label htmlFor="task_notes" className="text-muted mb-1">
+              <h5>Task Notes</h5>
+            </label>
+            <textarea id="show_task_notes" className="form-control" type="text" placeholder="Enter task notes (optional)" autoComplete="off" value={task_notes} style={{ minHeight: "150px", marginBottom: "10px" }} disabled></textarea>
+          </div>
+          {/* Task Plan */}
+          <div className="form-group">
+            <label htmlFor="edit_task_plan" className="text-muted mb-1">
+              <h5>Task Plan</h5>
+            </label>
+            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} defaultValue={task_plan} className="basic-multi-select" classNamePrefix="select" isDisabled={true} />
+          </div>
+          {/* Task Creator */}
+          <div className="form-group">
+            <label htmlFor="edit_task_creator" className="text-muted mb-1">
+              <h5>
+                Creator <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_creator}</b>
+              </h5>
+            </label>
+          </div>
+          {/* Task Owner */}
+          <div className="form-group">
+            <label htmlFor="edit_task_owner" className="text-muted mb-1">
+              <h5>
+                Owner <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_owner}</b>
+              </h5>
+            </label>
+          </div>
+          {/* Task Create Date */}
+          <div className="form-group">
+            <label htmlFor="edit_task_owner" className="text-muted mb-1">
+              <h5>
+                Created Date <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_createdate.slice(0, 10)}</b>
+              </h5>
+            </label>
+          </div>
         </form>
       </Modal>
     </div>
