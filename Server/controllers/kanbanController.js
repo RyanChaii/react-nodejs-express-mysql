@@ -6,6 +6,7 @@ const { retrieveRnumber, updateRnumber } = require("../utility/runningNumber");
 const { retrieveTask, retrieveTaskWithPlan } = require("../utility/retrieveTask");
 const { retrieveCurrentTaskState, retrieveApplicationPermit, retrieveTaskNotes } = require("../utility/promoteDemoteTask");
 const { retrievePlan } = require("../utility/retrievePlan");
+const { sendEmail, retrieveLeadEmailAndUsername } = require("../utility/sendEmail");
 
 // Required library
 const e = require("express");
@@ -362,17 +363,28 @@ const createTask = async (req, res, next) => {
 
   // If user added notes
   if (task_notes_input.length > 1 || task_notes_input.trim().length !== 0) {
-    auditMsg = auditMsg + promoteAuditMsg + generateAudit(task_creator_input, "open", task_notes_input);
+    auditMsg = auditMsg + promoteAuditMsg + generateAudit(task_creator_input, "open", "Added Notes: \n" + task_notes_input);
+  } else {
+    auditMsg = auditMsg + promoteAuditMsg;
   }
 
   // Declare state
   var task_state = "open";
 
+  // Check for plan
+  var taskPlan = "";
+  // Prevent crashing if no plan was selected
+  if (task_plan_input !== null && task_plan_input !== undefined) {
+    taskPlan = task_plan_input.value;
+  } else {
+    taskPlan = task_plan_input.value;
+  }
+
   let sql = `INSERT into task
   (task_id, task_name, task_description, task_notes, task_plan, task_app_acronym, task_state, task_creator, task_owner, task_createdate)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-  db.query(sql, [task_id, task_name_input, task_description_input, auditMsg, task_plan_input, task_app_acronym_input, task_state, task_creator_input, task_owners_input, createdDate], async (err, results) => {
+  db.query(sql, [task_id, task_name_input, task_description_input, auditMsg, taskPlan, task_app_acronym_input, task_state, task_creator_input, task_owners_input, createdDate], async (err, results) => {
     if (err) {
       console.log(err);
       return res.status(200).send({
@@ -440,7 +452,9 @@ const editTask = async (req, res, next) => {
 
   var taskPlan = "";
   // Prevent crashing if no plan was selected
-  if (task_plan_input !== null || task_plan_input !== undefined) {
+  if (task_plan_input !== null && task_plan_input !== undefined) {
+    taskPlan = task_plan_input.value;
+  } else {
     taskPlan = task_plan_input.value;
   }
 
@@ -465,56 +479,48 @@ const editTask = async (req, res, next) => {
   var auditMsg = "";
 
   if (task_added_notes_input.trim().length !== 0 && taskPlan !== dbPlan) {
-    auditMsg = auditMsg + generateAudit(username_input, currentState, "Task notes & plan have been updated");
+    auditMsg = auditMsg + generateAudit(username_input, currentState, "Task notes & plan have been updated" + "\n\nPlan Change to: \n" + String(taskPlan) + "\n\nAdded Notes: \n" + String(task_added_notes_input));
   } else if (task_added_notes_input.trim().length !== 0 && taskPlan === dbPlan) {
-    auditMsg = auditMsg + generateAudit(username_input, currentState, "Task notes have been updated");
+    auditMsg = auditMsg + generateAudit(username_input, currentState, "Task notes have been updated" + "\n\nAdded Notes: \n" + String(task_added_notes_input));
   } else if (task_added_notes_input.trim().length === 0 && taskPlan !== dbPlan) {
-    auditMsg = auditMsg + generateAudit(username_input, currentState, "Task plan have been updated");
+    auditMsg = auditMsg + generateAudit(username_input, currentState, "Task plan have been updated" + "\n\nPlan Change to: \n" + String(taskPlan));
   }
-  console.log(auditMsg);
+  // Appending to notes
+  auditMsg = currentNotes + auditMsg;
 
-  // Create audit trail for updating of user
-  //   var auditMsg = generateAudit(username_input, task_state_input, "Task have been updated");
+  let sql = `UPDATE task
+    SET task_notes = ?,
+    task_plan = ?, task_owner = ?
+    WHERE task_id = ?`;
 
-  //   // If user added notes
-  //   if (task_added_notes_input.length > 1 || task_added_notes_input.trim().length !== 0) {
-  //     auditMsg = auditMsg + generateAudit(username_input, task_state_input, task_added_notes_input);
-  //   }
-
-  //   auditMsg = task_notes_input + auditMsg;
-
-  //   let sql = `UPDATE task
-  //   SET task_description = ?, task_notes = ?,
-  //   task_plan = ?, task_owner = ?
-  //   WHERE task_id = ?`;
-
-  //   db.query(sql, [task_description_input, auditMsg, selectedPlan, username_input, task_id_input], (err, results) => {
-  //     try {
-  //       // SQL error messages
-  //       if (err) {
-  //         console.log(err);
-  //         return res.status(200).send({
-  //           success: false,
-  //           message: "Error updating task, please try again later"
-  //         });
-  //       }
-  //       // Successful messages
-  //       else {
-  //         return res.status(200).send({
-  //           success: true,
-  //           message: "Task updated successfully"
-  //         });
-  //       }
-  //     } catch (e) {
-  //       return res.status(200).send({
-  //         success: false,
-  //         message: "Error updating task, try again later"
-  //       });
-  //     }
-  //   });
+  db.query(sql, [auditMsg, taskPlan, username_input, task_id_input], (err, results) => {
+    try {
+      // SQL error messages
+      if (err) {
+        console.log(err);
+        return res.status(200).send({
+          success: false,
+          message: "Error updating task, please try again later"
+        });
+      }
+      // Successful messages
+      else {
+        return res.status(200).send({
+          success: true,
+          message: "Task updated successfully"
+        });
+      }
+    } catch (err) {
+      console.log("Error at edit task");
+      return res.status(200).send({
+        success: false,
+        message: "Error updating task, try again later"
+      });
+    }
+  });
 };
 
-// Promote task
+// Promote task && send email if task are promoted to done
 const promoteTask = async (req, res, next) => {
   // Retrieving user input
   var task_id_input = req.body.task_id;
@@ -557,13 +563,25 @@ const promoteTask = async (req, res, next) => {
     SET task_state = ?, task_owner = ?, task_notes = ?
     WHERE task_id = ?`;
 
-  db.query(sql, [promotedState, username_input, currentAuditMsg, task_id_input], (err, results) => {
+  db.query(sql, [promotedState, username_input, currentAuditMsg, task_id_input], async (err, results) => {
     try {
-      // Successful messages
-      return res.status(200).send({
-        success: true,
-        message: "Task promoted"
-      });
+      if (promotedState === "done") {
+        // console.log("im in");
+        var leadUser = await retrieveLeadEmailAndUsername("PL");
+        var msg = `Dear fellow project leads, \n\n${task_id_input} from ${task_app_acronym_input} have been promoted to DONE state \n\nRegards with thanks`;
+        sendEmail("System Generated", "systemgenerated@email.com", leadUser, msg);
+        // Successful messages
+        return res.status(200).send({
+          success: true,
+          message: "Task promoted"
+        });
+      } else {
+        // Successful messages
+        return res.status(200).send({
+          success: true,
+          message: "Task promoted"
+        });
+      }
     } catch (err) {
       return res.status(200).send({
         success: false,

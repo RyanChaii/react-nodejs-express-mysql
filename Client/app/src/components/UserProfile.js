@@ -104,7 +104,7 @@ function UserProfile() {
   return (
     <div>
       {isAdmin ? <HeaderAdmin /> : <Header />}
-      <div className="container">
+      <div className="container" style={{ paddingTop: "20px" }}>
         <div className="col-lg-8" style={{ margin: "auto" }}>
           <form onSubmit={handleEditProfileSubmit}>
             {/* Display username */}
@@ -163,4 +163,3 @@ function UserProfile() {
 }
 
 export default UserProfile;
-

@@ -25,6 +25,7 @@ import { SliderPicker } from "react-color";
 // Import my own component
 import Header from "./Header";
 import HeaderAdmin from "./HeaderAdmin";
+import reactSelect from "react-select";
 
 // Style for create app modal popup
 const customStylesCreateApp = {
@@ -298,7 +299,7 @@ function Dashboard() {
         });
       }
     } catch (e) {
-      toast.error("Problem creating app, please ensure no app duplication", {
+      toast.error("Problem creating app, please ensure no duplicate app name and all fields are filled", {
         position: toast.POSITION.TOP_CENTER,
         autoClose: 2000
       });
@@ -403,6 +404,7 @@ function Dashboard() {
   // Handle application onclick
   async function handleApplicationOnClick(app) {
     resetAppState();
+    setAvailablePlan("");
     setPlanData("");
     set_main_app_acronym(app.app_acronym);
     set_main_app_permit_create(app.app_permit_create);
@@ -429,6 +431,19 @@ function Dashboard() {
   // Plan
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
 
+  // Reset create plan field
+  function resetPlanFieldAndState() {
+    document.getElementById("create_plan_name").value = "";
+    document.getElementById("create_plan_startdate").value = "";
+    document.getElementById("create_plan_enddate").value = "";
+    document.getElementsByClassName("create_plan_colorcode")[0].value = "";
+
+    setplan_mvp_name("");
+    setplan_startdate("");
+    setplan_enddate("");
+    setplan_colorcode("");
+  }
+
   // Modal for open create plan
   function openCreatePlanModalFun() {
     drawerController();
@@ -452,20 +467,22 @@ function Dashboard() {
       const response = await Axios.post("http://localhost:3000/kanban/createplan", { plan_mvp_name: plan_mvp_name, plan_startdate: plan_startdate, plan_enddate: plan_enddate, plan_colorcode: plan_colorcode, app_acronym: main_app_acronym });
       if (response.data.message == "Plan created successfully") {
         getPlan(main_app_acronym);
-        toast.success(response.data.message, {
+        resetPlanFieldAndState();
+        return toast.success(response.data.message, {
           position: toast.POSITION.TOP_CENTER,
           autoClose: 2000
         });
       }
       // Failed to create application
       if (!response.data.success) {
-        toast.error(response.data.message, {
+        return toast.error(response.data.message, {
           position: toast.POSITION.TOP_CENTER,
           autoClose: 2000
         });
       }
     } catch (e) {
-      toast.error("Problem creating plan, please ensure no plan duplication", {
+      console.log(e);
+      return toast.error("Problem creating plan, please ensure no plan duplication", {
         position: toast.POSITION.TOP_CENTER,
         autoClose: 2000
       });
@@ -554,7 +571,6 @@ function Dashboard() {
   }
   // Task
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
-
   // Reset state for task
   function resetTaskState() {
     settask_id("");
@@ -566,6 +582,39 @@ function Dashboard() {
     settask_createdate("");
     settask_owner("");
     settask_createdate("");
+  }
+
+  function resetCreateTaskField() {
+    // Clear form field
+    document.getElementById("create_task_name").value = "";
+    document.getElementById("create_task_description").value = "";
+    document.getElementById("create_task_notes").value = "";
+
+    var test = () => {
+      return { value: "", label: "" };
+    };
+    var reset = test();
+
+    // var selectRef = null;
+
+    // clearValue = () => {
+    //   this.selectRef.select.clearValue();
+    // };
+    // var resetSelect = () => {
+    //   return { value: "", label: "" };
+    // };
+    document.getElementById("create_task_plan").value = "";
+    document.getElementById("create_task_plan").defaultValue = "";
+    document.getElementsByClassName("create_task_plan")[0].value = "";
+    document.getElementsByClassName("create_task_plan")[0].defaultValue = "";
+    // document.getElementsByClassName("create_task_plan")[0].placeholder = "";
+
+    console.log(document.getElementsByClassName("create_task_plan")[0].value);
+
+    var resetselect = document.querySelectorAll(".create_task_plan");
+    resetselect.forEach(select => {
+      select.setAttribute("placeholder", "");
+    });
   }
 
   // Modal for open create task
@@ -584,7 +633,7 @@ function Dashboard() {
   async function handleCreateTaskSubmit(e) {
     e.preventDefault();
     try {
-      const response = await Axios.post("http://localhost:3000/kanban/createtask", { task_name: task_name, task_description: task_description, task_notes: task_notes, task_app_acronym: main_app_acronym, task_creator: username, task_owner: username });
+      const response = await Axios.post("http://localhost:3000/kanban/createtask", { task_name: task_name, task_description: task_description, task_notes: task_notes, task_plan: task_plan, task_app_acronym: main_app_acronym, task_creator: username, task_owner: username });
       // Task creation successful
       if (response.data.success) {
         toast.success(response.data.message, {
@@ -592,6 +641,8 @@ function Dashboard() {
           autoClose: 2000
         });
         getTask(main_app_acronym);
+        resetTaskState();
+        resetCreateTaskField();
       }
       // Failed to create task
       if (!response.data.success) {
@@ -601,6 +652,7 @@ function Dashboard() {
         });
       }
     } catch (e) {
+      console.log(e);
       toast.error("Problem creating task, please ensure all field are filled", {
         position: toast.POSITION.TOP_CENTER,
         autoClose: 2000
@@ -907,7 +959,7 @@ function Dashboard() {
     <div>
       {isAdmin ? <HeaderAdmin /> : <Header />}
       <div className="row">
-        {/* Create and manage application */}
+        {/* Create and manage application DCF3EE*/}
         <div className="col-2" style={{ contentAlign: "center", textAlign: "center" }}>
           <Drawer open={true} direction="left" enableOverlay={false} className="application-drawer" style={{ backgroundColor: "black", position: "relative", color: "white", minHeight: "100vh", height: "100%", width: "100%" }}>
             {/* Create app button */}
@@ -942,7 +994,7 @@ function Dashboard() {
                             e.preventDefault();
                             openEditAppModalFun(app);
                           }}
-                          hidden={main_app_permit_createapp_bool === true ? false : true}
+                          // hidden={main_app_permit_createapp_bool === true ? false : true}
                         />
                       </button>
                     </div>
@@ -953,9 +1005,8 @@ function Dashboard() {
         </div>
 
         {/* Kan Ban board */}
-        <div className="col-lg-8" style={{ paddingLeft: "20px" }}>
-          <h1>Welcome to TMS!</h1>
-          <h2>Selected Application: {main_app_acronym}</h2>
+        <div className="col-lg-8" style={{ paddingLeft: "20px", backgroundColor: "#F7F5DB" }}>
+          <h2 style={{ paddingTop: "10px", paddingBottom: "10px" }}>Selected Application: {main_app_acronym}</h2>
           <CRow>
             {/* Open */}
             <CCol sm={2} style={{ width: "200px" }}>
@@ -975,7 +1026,7 @@ function Dashboard() {
                                 <CCardTitle>
                                   <h6>
                                     <center>
-                                      <b>{task.task_name}</b>
+                                      <b style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_name}</b>
                                     </center>
                                   </h6>
                                 </CCardTitle>
@@ -1000,8 +1051,15 @@ function Dashboard() {
                                     />
                                   </CCol>
                                 </CRow>
-                                <CRow>ID: {task.task_id}</CRow>
-                                <CRow>Owner: {task.task_owner}</CRow>
+                                <CRow>
+                                  <b>ID: {task.task_id}</b>
+                                </CRow>
+                                <CRow>
+                                  <b>Owner:</b>
+                                </CRow>
+                                <CRow>
+                                  <div style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_owner}</div>
+                                </CRow>
                                 <CRow>
                                   {main_app_permit_open_bool === true ? (
                                     <CButton
@@ -1058,7 +1116,7 @@ function Dashboard() {
                                 <CCardTitle>
                                   <h6>
                                     <center>
-                                      <b>{task.task_name}</b>
+                                      <b style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_name}</b>
                                     </center>
                                   </h6>
                                 </CCardTitle>
@@ -1083,8 +1141,15 @@ function Dashboard() {
                                     />
                                   </CCol>
                                 </CRow>
-                                <CRow>ID: {task.task_id}</CRow>
-                                <CRow>Owner: {task.task_owner}</CRow>
+                                <CRow>
+                                  <b>ID: {task.task_id}</b>
+                                </CRow>
+                                <CRow>
+                                  <b>Owner:</b>
+                                </CRow>
+                                <CRow>
+                                  <div style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_owner}</div>
+                                </CRow>
                                 <CRow>
                                   {main_app_permit_todolist_bool === true ? (
                                     <CButton
@@ -1141,7 +1206,7 @@ function Dashboard() {
                                 <CCardTitle>
                                   <h6>
                                     <center>
-                                      <b>{task.task_name}</b>
+                                      <b style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_name}</b>
                                     </center>
                                   </h6>
                                 </CCardTitle>
@@ -1174,8 +1239,15 @@ function Dashboard() {
                                     />
                                   </CCol>
                                 </CRow>
-                                <CRow>ID: {task.task_id}</CRow>
-                                <CRow>Owner: {task.task_owner}</CRow>
+                                <CRow>
+                                  <b>ID: {task.task_id}</b>
+                                </CRow>
+                                <CRow>
+                                  <b>Owner:</b>
+                                </CRow>
+                                <CRow>
+                                  <div style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_owner}</div>
+                                </CRow>
                                 <CRow>
                                   {main_app_permit_doing_bool === true ? (
                                     <CButton
@@ -1232,7 +1304,7 @@ function Dashboard() {
                                 <CCardTitle>
                                   <h6>
                                     <center>
-                                      <b>{task.task_name}</b>
+                                      <b style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_name}</b>
                                     </center>
                                   </h6>
                                 </CCardTitle>
@@ -1265,8 +1337,15 @@ function Dashboard() {
                                     />
                                   </CCol>
                                 </CRow>
-                                <CRow>ID: {task.task_id}</CRow>
-                                <CRow>Owner: {task.task_owner}</CRow>
+                                <CRow>
+                                  <b>ID: {task.task_id}</b>
+                                </CRow>
+                                <CRow>
+                                  <b>Owner:</b>
+                                </CRow>
+                                <CRow>
+                                  <div style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_owner}</div>
+                                </CRow>
                                 <CRow>
                                   {main_app_permit_done_bool === true ? (
                                     <CButton
@@ -1323,14 +1402,21 @@ function Dashboard() {
                                 <CCardTitle>
                                   <h6>
                                     <center>
-                                      <b>{task.task_name}</b>
+                                      <b style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_name}</b>
                                     </center>
                                   </h6>
                                 </CCardTitle>
                               </CCardHeader>
                               <CCardBody>
-                                <CRow>ID: {task.task_id}</CRow>
-                                <CRow>Owner: {task.task_owner}</CRow>
+                                <CRow>
+                                  <b>ID: {task.task_id}</b>
+                                </CRow>
+                                <CRow>
+                                  <b>Owner:</b>
+                                </CRow>
+                                <CRow>
+                                  <div style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_owner}</div>
+                                </CRow>
                                 <CRow>
                                   <CButton
                                     className="btn btn-primary btn-block"
@@ -1435,14 +1521,14 @@ function Dashboard() {
             <label htmlFor="app_startdate" className="text-muted mb-1">
               <h5>Start Date</h5>
             </label>
-            <DatePicker className="form-control" type="date" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
+            <DatePicker className="form-control" type="date" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required autoComplete="off" isClearable={true} />
           </div>
           {/* App End Date */}
           <div className="form-group">
             <label htmlFor="app_enddate" className="text-muted mb-1">
               <h5>End Date</h5>
             </label>
-            <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
+            <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required autoComplete="off" isClearable={true} />
           </div>
           {/* App Permit Create */}
           <div className="form-group">
@@ -1503,7 +1589,7 @@ function Dashboard() {
             <label htmlFor="app_description" className="text-muted mb-1">
               <h5>Description</h5>
             </label>
-            <textarea onChange={e => setapp_description(e.target.value)} id="edit_app_description" className="form-control" type="text" value={app_description} autoComplete="off"></textarea>
+            <textarea onChange={e => setapp_description(e.target.value)} id="edit_app_description" className="form-control" type="text" value={app_description} autoComplete="off" disabled={main_app_permit_createapp_bool === true ? false : true}></textarea>
           </div>
           {/* App Rnumber */}
           <div className="form-group">
@@ -1518,51 +1604,51 @@ function Dashboard() {
             <label htmlFor="app_startdate" className="text-muted mb-1">
               <h5>Start Date</h5>
             </label>
-            <DatePicker className="form-control" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
+            <DatePicker className="form-control" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required disabled={main_app_permit_createapp_bool === true ? false : true} />
           </div>
           {/* App End Date */}
           <div className="form-group">
             <label htmlFor="app_enddate" className="text-muted mb-1">
               <h5>End Date</h5>
             </label>
-            <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
+            <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required disabled={main_app_permit_createapp_bool === true ? false : true} />
           </div>
           {/* App Permit Create */}
           <div className="form-group">
             <label htmlFor="app_permitcreate" className="text-muted mb-1">
               <h5>App Permit Create</h5>
             </label>
-            <Select onChange={e => setapp_permit_create(e)} value={groupData.value} options={groupData} defaultValue={app_permit_create} className="basic-multi-select" classNamePrefix="select" />
+            <Select onChange={e => setapp_permit_create(e)} value={groupData.value} options={groupData} defaultValue={app_permit_create} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
           </div>
           {/* App Permit Open */}
           <div className="form-group">
             <label htmlFor="app_permitopen" className="text-muted mb-1">
               <h5>App Permit Open</h5>
             </label>
-            <Select onChange={e => setapp_permit_open(e)} value={groupData.value} options={groupData} defaultValue={app_permit_open} className="basic-multi-select" classNamePrefix="select" />
+            <Select onChange={e => setapp_permit_open(e)} value={groupData.value} options={groupData} defaultValue={app_permit_open} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
           </div>
           {/* App Permit ToDoList */}
           <div className="form-group">
             <label htmlFor="app_permittodolist" className="text-muted mb-1">
               <h5>App Permit ToDoList</h5>
             </label>
-            <Select onChange={e => setapp_permit_todolist(e)} value={groupData.value} options={groupData} defaultValue={app_permit_todolist} className="basic-multi-select" classNamePrefix="select" />
+            <Select onChange={e => setapp_permit_todolist(e)} value={groupData.value} options={groupData} defaultValue={app_permit_todolist} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
           </div>
           {/* App Permit Doing */}
           <div className="form-group">
             <label htmlFor="app_permitdoing" className="text-muted mb-1">
               <h5>App Permit Doing</h5>
             </label>
-            <Select onChange={e => setapp_permit_doing(e)} value={groupData.value} options={groupData} defaultValue={app_permit_doing} className="basic-multi-select" classNamePrefix="select" />
+            <Select onChange={e => setapp_permit_doing(e)} value={groupData.value} options={groupData} defaultValue={app_permit_doing} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
           </div>
           {/* App Permit Done */}
           <div className="form-group">
             <label htmlFor="app_permitdone" className="text-muted mb-1">
               <h5>App Permit Done</h5>
             </label>
-            <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} defaultValue={app_permit_done} className="basic-multi-select" classNamePrefix="select" />
+            <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} defaultValue={app_permit_done} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
           </div>
-          <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
+          <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }} hidden={main_app_permit_createapp_bool === true ? false : true}>
             Update Application
           </button>
         </form>
@@ -1584,14 +1670,14 @@ function Dashboard() {
             <label htmlFor="plan_startdate" className="text-muted mb-1">
               <h5>Plan Start Date</h5>
             </label>
-            <DatePicker className="form-control" type="date" onChange={date => setplan_startdate(date)} selected={plan_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
+            <DatePicker className="form-control create_plan_startdate" id="create_plan_startdate" type="date" onChange={date => setplan_startdate(date)} selected={plan_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required autoComplete="off" isClearable={true} />
           </div>
           {/* Plan End Date */}
           <div className="form-group">
             <label htmlFor="plan_enddate" className="text-muted mb-1">
               <h5>Plan End Date</h5>
             </label>
-            <DatePicker className="form-control" type="date" onChange={date => setplan_enddate(date)} selected={plan_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required />
+            <DatePicker className="form-control" id="create_plan_enddate" type="date" onChange={date => setplan_enddate(date)} selected={plan_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required autoComplete="off" isClearable={true} />
           </div>
           {/* Plan Slider Color */}
           <div className="form-group">
@@ -1599,7 +1685,7 @@ function Dashboard() {
               <h5>Plan Color Code</h5>
             </label>
             {/* <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" /> */}
-            <SliderPicker onChange={e => setplan_colorcode(e.hex)} color={plan_colorcode} />
+            <SliderPicker onChange={e => setplan_colorcode(e.hex)} color={plan_colorcode} id="create_plan_colorcode" className="create_plan_colorcode" />
           </div>
           <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
             Create Application
@@ -1672,6 +1758,13 @@ function Dashboard() {
             </label>
             <textarea onChange={e => settask_notes(e.target.value)} id="create_task_notes" className="form-control" type="text" placeholder="Enter task notes (optional)" autoComplete="off"></textarea>
           </div>
+          {/* Task Plan */}
+          <div className="form-group">
+            <label htmlFor="edit_task_plan" className="text-muted mb-1">
+              <h5>Task Plan</h5>
+            </label>
+            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} defaultValue={task_plan} id="create_task_plan" className="basic-multi-select create_task_plan" classNamePrefix="select" isDisabled={availablePlan.length !== 0 ? false : true} isClearable ref="" />
+          </div>
 
           <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
             Create Task
@@ -1711,7 +1804,7 @@ function Dashboard() {
             <label htmlFor="edit_task_plan" className="text-muted mb-1">
               <h5>Task Plan</h5>
             </label>
-            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} defaultValue={task_plan} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_manageplan_bool === true ? false : true} />
+            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} defaultValue={task_plan} className="basic-multi-select" classNamePrefix="select" isDisabled={(availablePlan.length !== 0 && task_state === "open") || task_state === "done" ? false : true} />
           </div>
           {/* Task Creator */}
           <div className="form-group">
