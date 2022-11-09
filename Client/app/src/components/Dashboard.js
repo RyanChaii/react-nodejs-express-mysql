@@ -577,11 +577,12 @@ function Dashboard() {
     settask_name("");
     settask_description("");
     settask_notes("");
-    settask_plan("");
+    settask_plan({ value: "", label: "" });
     settask_state("");
     settask_createdate("");
     settask_owner("");
     settask_createdate("");
+    settask_added_notes("");
   }
 
   function resetCreateTaskField() {
@@ -590,31 +591,19 @@ function Dashboard() {
     document.getElementById("create_task_description").value = "";
     document.getElementById("create_task_notes").value = "";
 
-    var test = () => {
-      return { value: "", label: "" };
-    };
-    var reset = test();
-
-    // var selectRef = null;
-
-    // clearValue = () => {
-    //   this.selectRef.select.clearValue();
-    // };
-    // var resetSelect = () => {
-    //   return { value: "", label: "" };
-    // };
-    document.getElementById("create_task_plan").value = "";
-    document.getElementById("create_task_plan").defaultValue = "";
     document.getElementsByClassName("create_task_plan")[0].value = "";
     document.getElementsByClassName("create_task_plan")[0].defaultValue = "";
-    // document.getElementsByClassName("create_task_plan")[0].placeholder = "";
-
-    console.log(document.getElementsByClassName("create_task_plan")[0].value);
 
     var resetselect = document.querySelectorAll(".create_task_plan");
     resetselect.forEach(select => {
+      select.removeAttribute("placeholder", "");
+      // select.addAtt("placeholder", "");
       select.setAttribute("placeholder", "");
     });
+    console.log(availablePlan);
+    setAvailablePlan({ value: "", label: "" });
+    setAvailablePlan({ value: "", label: "" });
+    console.log(availablePlan);
   }
 
   // Modal for open create task
@@ -640,9 +629,11 @@ function Dashboard() {
           position: toast.POSITION.TOP_CENTER,
           autoClose: 2000
         });
-        getTask(main_app_acronym);
+        setAvailablePlan("");
         resetTaskState();
         resetCreateTaskField();
+        getTask(main_app_acronym);
+        getPlan(main_app_acronym);
       }
       // Failed to create task
       if (!response.data.success) {
@@ -674,9 +665,14 @@ function Dashboard() {
         // Updating of task notes
         for (var i = 0; i < taskMessage.length; i++) {
           if (taskMessage[i].task_id === task_id) {
+            settask_notes("");
             settask_notes(taskMessage[i].task_notes);
-            var noteTextArea = document.getElementById("show_task_notes");
-            noteTextArea.scrollTop = noteTextArea.scrollHeight;
+            // var noteTextArea = document.getElementById("show_task_notes");
+            // noteTextArea.scrollTop = noteTextArea.scrollHeight;
+            // var noteTextAreaclass = document.getElementsByClassName("show_task_notes");
+            // noteTextAreaclass[0].scrollTop = noteTextAreaclass[0].scrollHeight;
+            // console.log("get task");
+            // console.log(noteTextArea.scrollHeight);
           }
         }
       }
@@ -732,10 +728,17 @@ function Dashboard() {
           position: toast.POSITION.TOP_CENTER,
           autoClose: 2000
         });
-        getTask(main_app_acronym);
-        var noteTextArea = document.getElementById("show_task_notes");
-        noteTextArea.scrollTop = noteTextArea.scrollHeight;
-        // settask_notes(task_notes);
+        // Retrieve all task
+        await getTask(main_app_acronym);
+        // Clear task added notes on submit
+        document.getElementById("edit_task_added_notes").value = "";
+        settask_added_notes("");
+        await scrollToBottom();
+
+        // var noteTextArea = document.getElementById("show_task_notes");
+        // noteTextArea.scrollTop = noteTextArea.scrollHeight;
+        // console.log(noteTextArea.scrollHeight);
+        // noteTextArea.scrollTo(noteTextArea.scrollHeight);
       }
       // Failed to create task
       if (!response.data.success) {
@@ -783,6 +786,19 @@ function Dashboard() {
     setOpenViewTaskModal(false);
   }
 
+  async function scrollToBottom() {
+    var taskNotes = document.getElementById("show_task_notes");
+    if (taskNotes) {
+      taskNotes.scrollTop = taskNotes.scrollHeight;
+    }
+
+    // console.log(task_notes.height);
+
+    // console.log(taskNotes.height);
+    // var taskNotes = document.getElementsByClassName("show_task_notes");
+    // taskNotes[1].scrollTop = taskNotes[1].scrollheight;
+    // console.log(taskNotes[0].);
+  }
   // Promotion & permit
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
   // Perform check group to determine the button
@@ -952,8 +968,9 @@ function Dashboard() {
     // Check or refresh all permit
     checkAllPermit();
     rightDrawerController();
+    scrollToBottom();
     // drawerController();
-  }, [main_app_acronym, main_app_permit_create, main_app_permit_open, main_app_permit_todolist, main_app_permit_doing, main_app_permit_done, username]);
+  }, [main_app_acronym, main_app_permit_create, main_app_permit_open, main_app_permit_todolist, main_app_permit_doing, main_app_permit_done, username, task_notes]);
 
   return (
     <div>
@@ -1688,7 +1705,7 @@ function Dashboard() {
             <SliderPicker onChange={e => setplan_colorcode(e.hex)} color={plan_colorcode} id="create_plan_colorcode" className="create_plan_colorcode" />
           </div>
           <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
-            Create Application
+            Create Plan
           </button>
         </form>
       </Modal>
@@ -1763,7 +1780,7 @@ function Dashboard() {
             <label htmlFor="edit_task_plan" className="text-muted mb-1">
               <h5>Task Plan</h5>
             </label>
-            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} defaultValue={task_plan} id="create_task_plan" className="basic-multi-select create_task_plan" classNamePrefix="select" isDisabled={availablePlan.length !== 0 ? false : true} isClearable ref="" />
+            <Select onChange={e => settask_plan(e)} value={task_plan} options={availablePlan} id="create_task_plan" className="basic-multi-select create_task_plan" classNamePrefix="select" isDisabled={availablePlan.length !== 0 ? false : true} isClearable />
           </div>
 
           <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
