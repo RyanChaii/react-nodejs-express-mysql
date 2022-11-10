@@ -39,8 +39,8 @@ const createApplication = async (req, res, next) => {
   var acronym_input = req.body.app_acronym;
   var description_input = req.body.app_description;
   var rnumber_input = req.body.app_rnumber;
-  var startdate_input = req.body.app_startdate.slice(0, 10);
-  var enddate_input = req.body.app_enddate.slice(0, 10);
+  var startdate_input = req.body.app_startdate;
+  var enddate_input = req.body.app_enddate;
   var permitcreate_input = req.body.app_permit_create;
   var permitopen_input = req.body.app_permit_open;
   var permittodolist_input = req.body.app_permit_todolist;
@@ -67,6 +67,32 @@ const createApplication = async (req, res, next) => {
     });
   }
 
+  // Date validation
+  if (startdate_input === undefined || enddate_input === undefined) {
+    return res.status(200).send({
+      success: false,
+      message: "Please ensure date are provided"
+    });
+  }
+
+  // Permit validation
+  if (permitcreate_input === undefined || permitopen_input === undefined || permittodolist_input === undefined || permitdoing_input === undefined || permitdone_input === undefined) {
+    return res.status(200).send({
+      success: false,
+      message: "Please ensure all permit are provided"
+    });
+  }
+
+  if (permitcreate_input === null || permitopen_input === null || permittodolist_input === null || permitdoing_input === null || permitdone_input === null) {
+    return res.status(200).send({
+      success: false,
+      message: "Please ensure all permit are provided"
+    });
+  }
+
+  startdate_input = startdate_input.slice(0, 10);
+  enddate_input = enddate_input.slice(0, 10);
+
   let sql = `INSERT into application 
   (app_acronym, app_description, app_rnumber, app_startdate, app_enddate, app_permit_create, app_permit_open, app_permit_todolist, app_permit_doing, app_permit_done)  
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
@@ -79,7 +105,7 @@ const createApplication = async (req, res, next) => {
         // console.log(err);
         return res.status(200).send({
           success: false,
-          message: "Error creating app, ensure no duplicate"
+          message: "Problem creating app, please ensure no duplicate app name and all fields are filled"
         });
       }
       // Successful messages
@@ -117,6 +143,29 @@ const editApplication = async (req, res, next) => {
   var permittodolist_input = req.body.app_permit_todolist;
   var permitdoing_input = req.body.app_permit_doing;
   var permitdone_input = req.body.app_permit_done;
+
+  // Date validation
+  if (startdate_input === undefined || enddate_input === undefined || startdate_input === null || enddate_input === null) {
+    return res.status(200).send({
+      success: false,
+      message: "Please ensure date are provided"
+    });
+  }
+
+  // Permit validation
+  if (permitcreate_input === undefined || permitopen_input === undefined || permittodolist_input === undefined || permitdoing_input === undefined || permitdone_input === undefined) {
+    return res.status(200).send({
+      success: false,
+      message: "Please ensure all permit are provided"
+    });
+  }
+
+  if (permitcreate_input === null || permitopen_input === null || permittodolist_input === null || permitdoing_input === null || permitdone_input === null) {
+    return res.status(200).send({
+      success: false,
+      message: "Please ensure all permit are provided"
+    });
+  }
 
   let sql = `UPDATE application
   SET app_description = ?, app_startdate = ?,
@@ -340,6 +389,38 @@ const createTask = async (req, res, next) => {
   var task_creator_input = req.body.task_creator;
   var task_owners_input = req.body.task_owner;
 
+  // Validation for task name, Check for only space empty string
+  if (task_name_input.trim().length === 0) {
+    return res.status(200).send({
+      success: false,
+      message: "Pure spaces are not allowed for task name"
+    });
+  }
+
+  // Validation for task app acronym
+  if (task_app_acronym_input < 1) {
+    return res.status(200).send({
+      success: false,
+      message: "App acronym are missing for creation of task"
+    });
+  }
+
+  // Validation for task creator
+  if (task_creator_input < 1) {
+    return res.status(200).send({
+      success: false,
+      message: "Task creator are missing"
+    });
+  }
+
+  // Validation for task owner
+  if (task_owners_input < 1) {
+    return res.status(200).send({
+      success: false,
+      message: "Task creator are missing"
+    });
+  }
+
   // Setting date
   var createdDate = new Date(Date.now()).toISOString().slice(0, 10);
   // Retrieving rnumber
@@ -355,6 +436,7 @@ const createTask = async (req, res, next) => {
       message: "Pure spaces are not allowed for task name"
     });
   }
+
   // Generating audit trail
   var auditMsg = await generateAudit(task_creator_input, "create", "Task are created");
 
@@ -377,7 +459,7 @@ const createTask = async (req, res, next) => {
   if (task_plan_input !== null && task_plan_input !== undefined) {
     taskPlan = task_plan_input.value;
   } else {
-    taskPlan = task_plan_input.value;
+    taskPlan = "";
   }
 
   let sql = `INSERT into task

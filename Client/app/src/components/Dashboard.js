@@ -700,8 +700,6 @@ function Dashboard() {
     settask_createdate(task.task_createdate);
     drawerController();
     setOpenEditTaskModal(true);
-
-    console.log(availablePlan[0].value);
   }
 
   function afterOpenEditTaskModalFun() {
@@ -791,13 +789,6 @@ function Dashboard() {
     if (taskNotes) {
       taskNotes.scrollTop = taskNotes.scrollHeight;
     }
-
-    // console.log(task_notes.height);
-
-    // console.log(taskNotes.height);
-    // var taskNotes = document.getElementsByClassName("show_task_notes");
-    // taskNotes[1].scrollTop = taskNotes[1].scrollheight;
-    // console.log(taskNotes[0].);
   }
   // Promotion & permit
   /* --------------------------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -969,7 +960,6 @@ function Dashboard() {
     checkAllPermit();
     rightDrawerController();
     scrollToBottom();
-    // drawerController();
   }, [main_app_acronym, main_app_permit_create, main_app_permit_open, main_app_permit_todolist, main_app_permit_doing, main_app_permit_done, username, task_notes]);
 
   return (
@@ -1043,7 +1033,9 @@ function Dashboard() {
                                 <CCardTitle>
                                   <h6>
                                     <center>
-                                      <b style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_name}</b>
+                                      <b>
+                                        <p style={{ overflowWrap: "break-word", display: "inline" }}>{task.task_name}</p>
+                                      </b>
                                     </center>
                                   </h6>
                                 </CCardTitle>
@@ -1133,7 +1125,9 @@ function Dashboard() {
                                 <CCardTitle>
                                   <h6>
                                     <center>
-                                      <b style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_name}</b>
+                                      <b>
+                                        <p style={{ overflowWrap: "break-word", display: "inline" }}>{task.task_name}</p>
+                                      </b>
                                     </center>
                                   </h6>
                                 </CCardTitle>
@@ -1223,7 +1217,9 @@ function Dashboard() {
                                 <CCardTitle>
                                   <h6>
                                     <center>
-                                      <b style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_name}</b>
+                                      <b>
+                                        <p style={{ overflowWrap: "break-word", display: "inline" }}>{task.task_name}</p>
+                                      </b>
                                     </center>
                                   </h6>
                                 </CCardTitle>
@@ -1321,7 +1317,9 @@ function Dashboard() {
                                 <CCardTitle>
                                   <h6>
                                     <center>
-                                      <b style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_name}</b>
+                                      <b>
+                                        <p style={{ overflowWrap: "break-word", display: "inline" }}>{task.task_name}</p>
+                                      </b>
                                     </center>
                                   </h6>
                                 </CCardTitle>
@@ -1419,7 +1417,9 @@ function Dashboard() {
                                 <CCardTitle>
                                   <h6>
                                     <center>
-                                      <b style={{ whiteSpace: "nowrap", overflow: "hidden" }}>{task.task_name}</b>
+                                      <b>
+                                        <p style={{ overflowWrap: "break-word", display: "inline" }}>{task.task_name}</p>
+                                      </b>
                                     </center>
                                   </h6>
                                 </CCardTitle>
@@ -1513,74 +1513,82 @@ function Dashboard() {
         <h2 style={{ paddingBottom: "20px" }}>Create Application Form</h2>
         <form onSubmit={handleCreateApplicationSubmit}>
           {/* App Acronym */}
-          <div className="form-group">
+          <div className="form-group col-12">
             <label htmlFor="app_acronym" className="text-muted mb-1">
               <h5>Acronym</h5>
             </label>
             <input onChange={e => setapp_acronym(e.target.value)} id="create_app_acronym" className="form-control" type="text" placeholder="Enter App acronym" autoComplete="off" required />
           </div>
           {/* App Description */}
-          <div className="form-group">
+          <div className="form-group col-12">
             <label htmlFor="app_description" className="text-muted mb-1">
               <h5>Description</h5>
             </label>
             <textarea onChange={e => setapp_description(e.target.value)} id="create_app_description" className="form-control" type="text" placeholder="Enter App description (optional)" autoComplete="off"></textarea>
           </div>
-          {/* App Rnumber */}
-          <div className="form-group">
-            <label htmlFor="app_rnumber" className="text-muted mb-1">
-              <h5>Rnumber</h5>
-            </label>
-            <input onChange={e => setapp_rnumber(e.target.value)} id="create_app_rnumber" className="form-control" type="number" placeholder="Select running number" autoComplete="off" required min="0" onKeyDown={evt => (evt.key === "." && evt.preventDefault()) || (evt.key === "e" && evt.preventDefault()) || (evt.key === "-" && evt.preventDefault())} />
+          <div className="input-group">
+            {/* App Rnumber */}
+            <div className="form-group col-4">
+              <label htmlFor="app_rnumber" className="text-muted mb-1">
+                <h5>Rnumber</h5>
+              </label>
+              <input onChange={e => setapp_rnumber(e.target.value)} id="create_app_rnumber" className="form-control" type="number" placeholder="Select running number" autoComplete="off" required min="0" onKeyDown={evt => (evt.key === "." && evt.preventDefault()) || (evt.key === "e" && evt.preventDefault()) || (evt.key === "-" && evt.preventDefault())} />
+            </div>
+            {/* App Start Date */}
+            <div className="form-group col-4">
+              <label htmlFor="app_startdate" className="text-muted mb-1">
+                <h5>Start Date</h5>
+              </label>
+              <DatePicker className="form-control" type="date" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required autoComplete="off" isClearable={true} />
+            </div>
+            {/* App End Date */}
+            <div className="form-group col-4">
+              <label htmlFor="app_enddate" className="text-muted mb-1">
+                <h5>End Date</h5>
+              </label>
+              <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required autoComplete="off" isClearable={true} />
+            </div>
           </div>
-          {/* App Start Date */}
-          <div className="form-group">
-            <label htmlFor="app_startdate" className="text-muted mb-1">
-              <h5>Start Date</h5>
-            </label>
-            <DatePicker className="form-control" type="date" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required autoComplete="off" isClearable={true} />
+
+          <div className="input-group">
+            {/* App Permit Create */}
+            <div className="form-group col-4">
+              <label htmlFor="app_permitcreate" className="text-muted mb-1">
+                <h5>App Permit Create</h5>
+              </label>
+              <Select onChange={e => setapp_permit_create(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+            </div>
+            {/* App Permit Open */}
+            <div className="form-group col-4">
+              <label htmlFor="app_permitopen" className="text-muted mb-1">
+                <h5>App Permit Open</h5>
+              </label>
+              <Select onChange={e => setapp_permit_open(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+            </div>
+            {/* App Permit ToDoList */}
+            <div className="form-group col-4">
+              <label htmlFor="app_permittodolist" className="text-muted mb-1">
+                <h5>App Permit ToDoList</h5>
+              </label>
+              <Select onChange={e => setapp_permit_todolist(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+            </div>
           </div>
-          {/* App End Date */}
-          <div className="form-group">
-            <label htmlFor="app_enddate" className="text-muted mb-1">
-              <h5>End Date</h5>
-            </label>
-            <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required autoComplete="off" isClearable={true} />
-          </div>
-          {/* App Permit Create */}
-          <div className="form-group">
-            <label htmlFor="app_permitcreate" className="text-muted mb-1">
-              <h5>App Permit Create</h5>
-            </label>
-            <Select onChange={e => setapp_permit_create(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
-          </div>
-          {/* App Permit Open */}
-          <div className="form-group">
-            <label htmlFor="app_permitopen" className="text-muted mb-1">
-              <h5>App Permit Open</h5>
-            </label>
-            <Select onChange={e => setapp_permit_open(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
-          </div>
-          {/* App Permit ToDoList */}
-          <div className="form-group">
-            <label htmlFor="app_permittodolist" className="text-muted mb-1">
-              <h5>App Permit ToDoList</h5>
-            </label>
-            <Select onChange={e => setapp_permit_todolist(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
-          </div>
-          {/* App Permit Doing */}
-          <div className="form-group">
-            <label htmlFor="app_permitdoing" className="text-muted mb-1">
-              <h5>App Permit Doing</h5>
-            </label>
-            <Select onChange={e => setapp_permit_doing(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
-          </div>
-          {/* App Permit Done */}
-          <div className="form-group">
-            <label htmlFor="app_permitdone" className="text-muted mb-1">
-              <h5>App Permit Done</h5>
-            </label>
-            <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+
+          <div className="input-group">
+            {/* App Permit Doing */}
+            <div className="form-group col-6">
+              <label htmlFor="app_permitdoing" className="text-muted mb-1">
+                <h5>App Permit Doing</h5>
+              </label>
+              <Select onChange={e => setapp_permit_doing(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+            </div>
+            {/* App Permit Done */}
+            <div className="form-group col-6">
+              <label htmlFor="app_permitdone" className="text-muted mb-1">
+                <h5>App Permit Done</h5>
+              </label>
+              <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} className="basic-multi-select" classNamePrefix="select" />
+            </div>
           </div>
           <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
             Create Application
@@ -1593,78 +1601,91 @@ function Dashboard() {
         {/* <button onClick={closeModal}>close</button> */}
         <h2 style={{ paddingBottom: "20px" }}>Editing Application</h2>
         <form onSubmit={handleEditApplicationSubmit}>
-          {/* App Acronym */}
-          <div className="form-group">
-            <label htmlFor="app_acronym" className="text-muted mb-1">
-              <h5>
-                Acronym: <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{app_acronym}</b>
-              </h5>
-            </label>
+          <div className="input-group">
+            {/* App Acronym */}
+            <div className="form-group col-6">
+              <label htmlFor="app_acronym" className="text-muted mb-1">
+                <h5>
+                  Acronym: <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{app_acronym}</b>
+                </h5>
+              </label>
+            </div>
+            {/* App Rnumber */}
+            <div className="form-group col-6">
+              <label htmlFor="app_rnumber" className="text-muted mb-1">
+                <h5>
+                  Rnumber <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{app_rnumber}</b>
+                </h5>
+              </label>
+            </div>
           </div>
+
           {/* App Description */}
-          <div className="form-group">
+          <div className="form-group col-12">
             <label htmlFor="app_description" className="text-muted mb-1">
               <h5>Description</h5>
             </label>
             <textarea onChange={e => setapp_description(e.target.value)} id="edit_app_description" className="form-control" type="text" value={app_description} autoComplete="off" disabled={main_app_permit_createapp_bool === true ? false : true}></textarea>
           </div>
-          {/* App Rnumber */}
-          <div className="form-group">
-            <label htmlFor="app_rnumber" className="text-muted mb-1">
-              <h5>
-                Rnumber <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{app_rnumber}</b>
-              </h5>
-            </label>
+          <div className="input-group">
+            {/* App Start Date */}
+            <div className="form-group col-6">
+              <label htmlFor="app_startdate" className="text-muted mb-1">
+                <h5>Start Date</h5>
+              </label>
+              <DatePicker className="form-control" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required disabled={main_app_permit_createapp_bool === true ? false : true} />
+            </div>
+
+            {/* App End Date */}
+            <div className="form-group col-6">
+              <label htmlFor="app_enddate" className="text-muted mb-1">
+                <h5>End Date</h5>
+              </label>
+              <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required disabled={main_app_permit_createapp_bool === true ? false : true} />
+            </div>
           </div>
-          {/* App Start Date */}
-          <div className="form-group">
-            <label htmlFor="app_startdate" className="text-muted mb-1">
-              <h5>Start Date</h5>
-            </label>
-            <DatePicker className="form-control" onChange={date => setapp_startdate(date)} selected={app_startdate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required disabled={main_app_permit_createapp_bool === true ? false : true} />
+
+          <div className="input-group">
+            {/* App Permit Create */}
+            <div className="form-group col-4">
+              <label htmlFor="app_permitcreate" className="text-muted mb-1">
+                <h5>App Permit Create</h5>
+              </label>
+              <Select onChange={e => setapp_permit_create(e)} value={groupData.value} options={groupData} defaultValue={app_permit_create} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
+            </div>
+            {/* App Permit Open */}
+            <div className="form-group col-4">
+              <label htmlFor="app_permitopen" className="text-muted mb-1">
+                <h5>App Permit Open</h5>
+              </label>
+              <Select onChange={e => setapp_permit_open(e)} value={groupData.value} options={groupData} defaultValue={app_permit_open} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
+            </div>
+            {/* App Permit ToDoList */}
+            <div className="form-group col-4">
+              <label htmlFor="app_permittodolist" className="text-muted mb-1">
+                <h5>App Permit ToDoList</h5>
+              </label>
+              <Select onChange={e => setapp_permit_todolist(e)} value={groupData.value} options={groupData} defaultValue={app_permit_todolist} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
+            </div>
           </div>
-          {/* App End Date */}
-          <div className="form-group">
-            <label htmlFor="app_enddate" className="text-muted mb-1">
-              <h5>End Date</h5>
-            </label>
-            <DatePicker className="form-control" onChange={date => setapp_enddate(date)} selected={app_enddate} dateFormat="dd-MM-yyyy" onKeyDown={e => e.preventDefault()} required disabled={main_app_permit_createapp_bool === true ? false : true} />
+
+          <div className="input-group">
+            {/* App Permit Doing */}
+            <div className="form-group col-6">
+              <label htmlFor="app_permitdoing" className="text-muted mb-1">
+                <h5>App Permit Doing</h5>
+              </label>
+              <Select onChange={e => setapp_permit_doing(e)} value={groupData.value} options={groupData} defaultValue={app_permit_doing} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
+            </div>
+            {/* App Permit Done */}
+            <div className="form-group col-6">
+              <label htmlFor="app_permitdone" className="text-muted mb-1">
+                <h5>App Permit Done</h5>
+              </label>
+              <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} defaultValue={app_permit_done} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
+            </div>
           </div>
-          {/* App Permit Create */}
-          <div className="form-group">
-            <label htmlFor="app_permitcreate" className="text-muted mb-1">
-              <h5>App Permit Create</h5>
-            </label>
-            <Select onChange={e => setapp_permit_create(e)} value={groupData.value} options={groupData} defaultValue={app_permit_create} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
-          </div>
-          {/* App Permit Open */}
-          <div className="form-group">
-            <label htmlFor="app_permitopen" className="text-muted mb-1">
-              <h5>App Permit Open</h5>
-            </label>
-            <Select onChange={e => setapp_permit_open(e)} value={groupData.value} options={groupData} defaultValue={app_permit_open} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
-          </div>
-          {/* App Permit ToDoList */}
-          <div className="form-group">
-            <label htmlFor="app_permittodolist" className="text-muted mb-1">
-              <h5>App Permit ToDoList</h5>
-            </label>
-            <Select onChange={e => setapp_permit_todolist(e)} value={groupData.value} options={groupData} defaultValue={app_permit_todolist} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
-          </div>
-          {/* App Permit Doing */}
-          <div className="form-group">
-            <label htmlFor="app_permitdoing" className="text-muted mb-1">
-              <h5>App Permit Doing</h5>
-            </label>
-            <Select onChange={e => setapp_permit_doing(e)} value={groupData.value} options={groupData} defaultValue={app_permit_doing} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
-          </div>
-          {/* App Permit Done */}
-          <div className="form-group">
-            <label htmlFor="app_permitdone" className="text-muted mb-1">
-              <h5>App Permit Done</h5>
-            </label>
-            <Select onChange={e => setapp_permit_done(e)} value={groupData.value} options={groupData} defaultValue={app_permit_done} className="basic-multi-select" classNamePrefix="select" isDisabled={main_app_permit_createapp_bool === true ? false : true} />
-          </div>
+
           <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }} hidden={main_app_permit_createapp_bool === true ? false : true}>
             Update Application
           </button>
@@ -1793,61 +1814,69 @@ function Dashboard() {
       <Modal isOpen={openEditTaskModal} onRequestClose={closeEditTaskModalFun} onAfterOpen={afterOpenEditTaskModalFun} style={customStylesCreateTask}>
         <h2 style={{ paddingBottom: "20px" }}>{task_name}</h2>
         <form onSubmit={handleUpdateTaskSubmit}>
-          {/* Task ID */}
-          <div className="form-group">
-            <label htmlFor="task_id" className="text-muted mb-1">
-              <h5>
-                Task ID <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_id}</b>
-              </h5>
-            </label>
+          <div className="input-group">
+            {/* Task ID */}
+            <div className="form-group col-6">
+              <label htmlFor="task_id" className="text-muted mb-1">
+                <h5>
+                  Task ID <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_id}</b>
+                </h5>
+              </label>
+            </div>
+            {/* Task Create Date */}
+            <div className="form-group col-6">
+              <label htmlFor="edit_task_owner" className="text-muted mb-1">
+                <h5>
+                  Created Date <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_createdate.slice(0, 10)}</b>
+                </h5>
+              </label>
+            </div>
           </div>
-          {/* Task Description */}
-          <div className="form-group">
-            <label htmlFor="task_description" className="text-muted mb-1">
-              <h5>Task Description</h5>
-            </label>
-            <textarea onChange={e => settask_description(e.target.value)} id="edit_task_description" className="form-control" type="text" placeholder="Enter task description (optional)" autoComplete="off" defaultValue={task_description} disabled={true}></textarea>
+          <div className="input-group">
+            {/* Task Owner */}
+            <div className="form-group col-6">
+              <label htmlFor="edit_task_owner" className="text-muted mb-1">
+                <h5>
+                  Owner <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_owner}</b>
+                </h5>
+              </label>
+            </div>
+            {/* Task Creator */}
+            <div className="form-group col-6">
+              <label htmlFor="edit_task_creator" className="text-muted mb-1">
+                <h5>
+                  Creator <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_creator}</b>
+                </h5>
+              </label>
+            </div>
           </div>
+          <div className="input-group">
+            {/* Task Description */}
+            <div className="form-group col-8">
+              <label htmlFor="task_description" className="text-muted mb-1">
+                <h5>Task Description</h5>
+              </label>
+              <textarea onChange={e => settask_description(e.target.value)} id="edit_task_description" className="form-control" type="text" placeholder="Enter task description (optional)" autoComplete="off" defaultValue={task_description} disabled={true}></textarea>
+            </div>
+            {/* Task Plan */}
+            <div className="form-group col-4">
+              <label htmlFor="edit_task_plan" className="text-muted mb-1">
+                <h5>Task Plan</h5>
+              </label>
+              <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} defaultValue={task_plan} className="basic-multi-select" classNamePrefix="select" isDisabled={(availablePlan.length !== 0 && task_state === "open") || task_state === "done" ? false : true} />
+            </div>
+          </div>
+
           {/* Task Notes */}
-          <div className="form-group">
+          <div className="form-group col-12">
             <label htmlFor="task_notes" className="text-muted mb-1">
               <h5>Task Notes</h5>
             </label>
-            <textarea id="show_task_notes" className="form-control" type="text" placeholder="Enter task notes (optional)" autoComplete="off" value={task_notes} style={{ minHeight: "150px", marginBottom: "10px" }} disabled></textarea>
+            <textarea id="show_task_notes" className="form-control" type="text" placeholder="Enter task notes (optional)" autoComplete="off" value={task_notes} style={{ minHeight: "100px", marginBottom: "10px" }} disabled></textarea>
             <textarea onChange={e => settask_added_notes(e.target.value)} id="edit_task_added_notes" className="form-control" type="text" placeholder="Enter task notes (optional)" autoComplete="off"></textarea>
           </div>
-          {/* Task Plan */}
-          <div className="form-group">
-            <label htmlFor="edit_task_plan" className="text-muted mb-1">
-              <h5>Task Plan</h5>
-            </label>
-            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} defaultValue={task_plan} className="basic-multi-select" classNamePrefix="select" isDisabled={(availablePlan.length !== 0 && task_state === "open") || task_state === "done" ? false : true} />
-          </div>
-          {/* Task Creator */}
-          <div className="form-group">
-            <label htmlFor="edit_task_creator" className="text-muted mb-1">
-              <h5>
-                Creator <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_creator}</b>
-              </h5>
-            </label>
-          </div>
-          {/* Task Owner */}
-          <div className="form-group">
-            <label htmlFor="edit_task_owner" className="text-muted mb-1">
-              <h5>
-                Owner <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_owner}</b>
-              </h5>
-            </label>
-          </div>
-          {/* Task Create Date */}
-          <div className="form-group">
-            <label htmlFor="edit_task_owner" className="text-muted mb-1">
-              <h5>
-                Created Date <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_createdate.slice(0, 10)}</b>
-              </h5>
-            </label>
-          </div>
-          <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "20px" }}>
+
+          <button type="submit" className="btn btn-lg btn-success btn-block" style={{ marginTop: "10px" }}>
             Update Task
           </button>
         </form>
@@ -1856,59 +1885,69 @@ function Dashboard() {
       {/* Modal for view task */}
       <Modal isOpen={openViewTaskModal} onRequestClose={closeViewTaskModalFun} onAfterOpen={afterOpenViewTaskModalFun} style={customStylesCreateTask}>
         <h2 style={{ paddingBottom: "20px" }}>{task_name}</h2>
+
         <form>
-          {/* Task ID */}
-          <div className="form-group">
-            <label htmlFor="task_id" className="text-muted mb-1">
-              <h5>
-                Task ID <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_id}</b>
-              </h5>
-            </label>
+          <div className="input-group">
+            {/* Task ID */}
+            <div className="form-group col-6">
+              <label htmlFor="task_id" className="text-muted mb-1">
+                <h5>
+                  Task ID <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_id}</b>
+                </h5>
+              </label>
+            </div>
+            {/* Task Create Date */}
+            <div className="form-group col-6">
+              <label htmlFor="edit_task_owner" className="text-muted mb-1">
+                <h5>
+                  Created Date <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_createdate.slice(0, 10)}</b>
+                </h5>
+              </label>
+            </div>
           </div>
-          {/* Task Description */}
-          <div className="form-group">
-            <label htmlFor="task_description" className="text-muted mb-1">
-              <h5>Task Description</h5>
-            </label>
-            <textarea onChange={e => settask_description(e.target.value)} id="edit_task_description" className="form-control" type="text" placeholder="Enter task description (optional)" autoComplete="off" defaultValue={task_description} disabled></textarea>
+
+          <div className="input-group">
+            {/* Task Creator */}
+            <div className="form-group col-6">
+              <label htmlFor="edit_task_creator" className="text-muted mb-1">
+                <h5>
+                  Creator <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_creator}</b>
+                </h5>
+              </label>
+            </div>
+            {/* Task Owner */}
+            <div className="form-group col-6">
+              <label htmlFor="edit_task_owner" className="text-muted mb-1">
+                <h5>
+                  Owner <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_owner}</b>
+                </h5>
+              </label>
+            </div>
           </div>
+
+          <div className="input-group">
+            {/* Task Description */}
+            <div className="form-group col-8">
+              <label htmlFor="task_description" className="text-muted mb-1">
+                <h5>Task Description</h5>
+              </label>
+              <textarea onChange={e => settask_description(e.target.value)} id="edit_task_description" className="form-control" type="text" placeholder="Enter task description (optional)" autoComplete="off" defaultValue={task_description} disabled></textarea>
+            </div>
+            {/* Task Plan */}
+            <div className="form-group col-4">
+              <label htmlFor="edit_task_plan" className="text-muted mb-1">
+                <h5>Task Plan</h5>
+              </label>
+              <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} defaultValue={task_plan} className="basic-multi-select" classNamePrefix="select" isDisabled={true} />
+            </div>
+          </div>
+
           {/* Task Notes */}
-          <div className="form-group">
+          <div className="form-group col-12">
             <label htmlFor="task_notes" className="text-muted mb-1">
               <h5>Task Notes</h5>
             </label>
-            <textarea id="show_task_notes" className="form-control" type="text" placeholder="Enter task notes (optional)" autoComplete="off" value={task_notes} style={{ minHeight: "150px", marginBottom: "10px" }} disabled></textarea>
-          </div>
-          {/* Task Plan */}
-          <div className="form-group">
-            <label htmlFor="edit_task_plan" className="text-muted mb-1">
-              <h5>Task Plan</h5>
-            </label>
-            <Select onChange={e => settask_plan(e)} value={availablePlan.value} options={availablePlan} defaultValue={task_plan} className="basic-multi-select" classNamePrefix="select" isDisabled={true} />
-          </div>
-          {/* Task Creator */}
-          <div className="form-group">
-            <label htmlFor="edit_task_creator" className="text-muted mb-1">
-              <h5>
-                Creator <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_creator}</b>
-              </h5>
-            </label>
-          </div>
-          {/* Task Owner */}
-          <div className="form-group">
-            <label htmlFor="edit_task_owner" className="text-muted mb-1">
-              <h5>
-                Owner <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_owner}</b>
-              </h5>
-            </label>
-          </div>
-          {/* Task Create Date */}
-          <div className="form-group">
-            <label htmlFor="edit_task_owner" className="text-muted mb-1">
-              <h5>
-                Created Date <b style={{ fontSize: "25px", color: "black", marginLeft: "20px" }}>{task_createdate.slice(0, 10)}</b>
-              </h5>
-            </label>
+            <textarea id="show_task_notes" className="form-control" type="text" placeholder="Enter task notes (optional)" autoComplete="off" value={task_notes} style={{ minHeight: "200px", marginBottom: "10px" }} disabled></textarea>
           </div>
         </form>
       </Modal>
