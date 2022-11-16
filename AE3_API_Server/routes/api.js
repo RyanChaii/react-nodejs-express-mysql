@@ -5,6 +5,12 @@ const router = express.Router();
 const api = require("../controllers/APIController");
 
 // Create Task
-router.route("/api/createTask").post(api.createTask);
+router.route("/api/CreateTask").post(api.createTask);
+
+// Get task by state
+router.route("/api/GetTaskByState").post(api.getTasksByState);
+
+// Promote task 2 done
+router.route("/api/PromoteTask2Done").post(api.promoteTask2Done);
 
 module.exports = router;
