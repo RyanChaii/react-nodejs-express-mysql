@@ -4,7 +4,7 @@ const { generateAudit, generatePromoteDemoteAudit } = require("../utility/genera
 const { retrieveRnumber, updateRnumber } = require("../utility/runningNumber");
 const { checkValid, checkOptionalIsString } = require("../utility/checkValidation");
 const { loginUser, checkApplicationExists, retrieveAppPermitCreate, checkTaskInValidState, checkTaskExists, retrieveAppAcronym, retrieveAppPermitDoing } = require("../utility/ae3_api");
-const { retrieveCurrentTaskState, retrieveApplicationPermit, retrieveTaskNotes } = require("../utility/promoteDemoteTask");
+const { retrieveCurrentTaskState, retrieveTaskNotes } = require("../utility/promoteDemoteTask");
 const { sendEmail, retrieveLeadEmailAndUsername } = require("../utility/sendEmail");
 const { Checkgroup } = require("../utility/checkGroup");
 
@@ -32,12 +32,7 @@ const createTask = async (req, res, next) => {
         code: "CT01"
       });
     }
-    // Ensure username are 45 character or lesser
-    if (username_input.length > 45) {
-      return res.send({
-        code: "CT01"
-      });
-    }
+
     // Ensure password send are within regex
     if (!password_input.match(passwordPattern)) {
       return res.send({
@@ -52,7 +47,7 @@ const createTask = async (req, res, next) => {
     }
 
     // Validation for app name
-    if (checkValid(task_app_acronym_input) === false || !task_app_acronym_input.match(acronymPattern) || task_app_acronym_input.length > 45) {
+    if (checkValid(task_app_acronym_input) === false || !task_app_acronym_input.match(acronymPattern)) {
       return res.send({
         code: "CT02"
       });
@@ -161,12 +156,7 @@ const getTasksByState = async (req, res, next) => {
         code: "GT01"
       });
     }
-    // Ensure username are 45 character or lesser
-    if (username_input.length > 45) {
-      return res.send({
-        code: "GT01"
-      });
-    }
+
     // Ensure password send are within regex
     if (!password_input.match(passwordPattern)) {
       return res.send({
@@ -181,7 +171,7 @@ const getTasksByState = async (req, res, next) => {
     }
 
     // Validation for app name
-    if (checkValid(task_app_acronym_input) === false || !task_app_acronym_input.match(acronymPattern) || task_app_acronym_input.length > 45) {
+    if (checkValid(task_app_acronym_input) === false || !task_app_acronym_input.match(acronymPattern)) {
       return res.send({
         code: "GT02"
       });
@@ -253,12 +243,7 @@ const promoteTask2Done = async (req, res, next) => {
         code: "PT01"
       });
     }
-    // Ensure username are 45 character or lesser
-    if (username_input.length > 45) {
-      return res.send({
-        code: "PT01"
-      });
-    }
+
     // Ensure password send are within regex
     if (!password_input.match(passwordPattern)) {
       return res.send({
@@ -274,13 +259,6 @@ const promoteTask2Done = async (req, res, next) => {
 
     // Check task id
     if (checkValid(task_id_input) === false) {
-      return res.send({
-        code: "PT02"
-      });
-    }
-
-    // Check task id is less than 45 characters
-    if (String(task_id_input).length > 45) {
       return res.send({
         code: "PT02"
       });

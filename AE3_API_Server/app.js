@@ -2,19 +2,27 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 
-app.use(function (req, res, next) {
-  var err = null;
-  try {
-    decodeURIComponent(req.path);
-  } catch (e) {
-    err = e;
-    res.send({ code: 400 });
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Prevent crashing and handle error in the req.body
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+    return res.status(400).send({ code: "AA88" });
   }
   next();
 });
 
-app.use(express.json());
-app.use(cors());
+// Prevent crashing and handle percentage in the url
+app.use((req, res, next) => {
+  try {
+    decodeURIComponent(req.path);
+  } catch (e) {
+    return res.status(400).send({ code: "AA99" });
+  }
+  next();
+});
 
 const dotenv = require("dotenv");
 
@@ -27,23 +35,16 @@ dotenv.config({ path: "./config/config.env" });
 connectDatabase;
 
 // Importing all routes
-const user = require("./routes/user");
-const kanban = require("./routes/kanban");
 const api = require("./routes/api");
 
-app.use(user);
-app.use(kanban);
 app.use(api);
+
+// All not valid api will be displayed with this code
+app.all("*", (req, res, next) => {
+  res.status(400).send({ code: "AA99" });
+});
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Node server started on port ${process.env.PORT} in ${process.env.NODE_ENV} mode`);
 });
-
-// app.use("*", (res) => {
-//   console.log(`error`);
-//   return res.send({
-//     code: "CT03"
-//   })
-
-// });
