@@ -1,2 +1,7 @@
-# STE_bootcamp
-ST Engineering Bootcamp Basic
+# Boot Camp
+
+### Nth-tier architecture
+### React JS
+### Node JS
+### Express
+### MySQL
