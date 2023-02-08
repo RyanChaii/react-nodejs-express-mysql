@@ -963,7 +963,7 @@ function Dashboard() {
   }, [main_app_acronym, main_app_permit_create, main_app_permit_open, main_app_permit_todolist, main_app_permit_doing, main_app_permit_done, username, task_notes]);
 
   return (
-    <div>
+    <div style={{ backgroundColor: "#F7F5DB" }}>
       {isAdmin ? <HeaderAdmin /> : <Header />}
       <div className="row">
         {/* Create and manage application DCF3EE*/}
